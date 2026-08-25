@@ -14,8 +14,14 @@ interface Props {
 
 const COLUMN_STYLES: Record<Status, string> = {
   A_FAZER: "border-t-slate-400",
-  FAZENDO: "border-t-amber-400",
+  FAZENDO: "border-t-gold-400",
   FEITO: "border-t-emerald-400",
+};
+
+const COLUMN_DOT: Record<Status, string> = {
+  A_FAZER: "bg-slate-400",
+  FAZENDO: "bg-gold-400",
+  FEITO: "bg-emerald-400",
 };
 
 export function KanbanColumn({ status, tasks, onTaskClick, onTaskComplete }: Props) {
@@ -23,19 +29,20 @@ export function KanbanColumn({ status, tasks, onTaskClick, onTaskComplete }: Pro
 
   return (
     <div className="flex flex-col w-full sm:w-80 shrink-0">
-      <div className={`bg-white rounded-t-lg border border-b-0 border-slate-200 border-t-4 ${COLUMN_STYLES[status]} px-3 py-2.5 flex items-center justify-between`}>
-        <h3 className="text-sm font-semibold text-slate-700">
+      <div className={`bg-white rounded-t-xl border border-b-0 border-slate-200 border-t-4 ${COLUMN_STYLES[status]} px-3.5 py-3 flex items-center justify-between`}>
+        <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+          <span className={`w-1.5 h-1.5 rounded-full ${COLUMN_DOT[status]}`} />
           {STATUS_LABELS[status]}
         </h3>
-        <span className="text-xs text-slate-400 bg-slate-100 rounded-full px-2 py-0.5">
+        <span className="text-xs font-medium text-brand-700 bg-brand-50 rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
           {tasks.length}
         </span>
       </div>
 
       <div
         ref={setNodeRef}
-        className={`flex-1 bg-slate-50 border border-slate-200 rounded-b-lg p-2 space-y-2 min-h-[200px] transition-colors ${
-          isOver ? "bg-blue-50" : ""
+        className={`flex-1 bg-slate-50/70 border border-slate-200 rounded-b-xl p-2.5 space-y-2.5 min-h-[200px] transition-colors ${
+          isOver ? "bg-brand-50" : ""
         }`}
       >
         <SortableContext
@@ -53,9 +60,10 @@ export function KanbanColumn({ status, tasks, onTaskClick, onTaskComplete }: Pro
         </SortableContext>
 
         {tasks.length === 0 && (
-          <p className="text-xs text-slate-400 text-center py-6">
-            Nenhuma tarefa aqui
-          </p>
+          <div className="flex flex-col items-center justify-center py-10 text-center gap-1.5">
+            <span className="text-2xl opacity-40">🔋</span>
+            <p className="text-xs text-slate-400">Nenhuma tarefa aqui</p>
+          </div>
         )}
       </div>
     </div>

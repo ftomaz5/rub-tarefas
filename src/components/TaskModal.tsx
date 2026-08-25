@@ -114,8 +114,8 @@ export function TaskModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-[fadeIn_0.15s_ease-out]">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-[slideUp_0.2s_ease-out]">
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">
@@ -310,7 +310,7 @@ export function TaskModal({
             <button
               type="submit"
               disabled={saving}
-              className="text-sm bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-medium rounded-lg px-4 py-2 transition-colors"
+              className="text-sm bg-brand-900 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold rounded-lg px-4 py-2 transition-colors shadow-sm"
             >
               {saving ? "Salvando..." : "Salvar"}
             </button>

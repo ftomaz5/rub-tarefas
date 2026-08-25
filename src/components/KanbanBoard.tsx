@@ -199,7 +199,7 @@ export function KanbanBoard({ workspace }: Props) {
             setEditingTask(null);
             setModalOpen(true);
           }}
-          className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg px-4 py-2 transition-colors"
+          className="bg-brand-900 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-4 py-2 transition-colors shadow-sm hover:shadow-md"
         >
           + Nova tarefa
         </button>

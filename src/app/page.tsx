@@ -11,11 +11,14 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header userName={session.user.name ?? "Usuário"} />
-      <main className="max-w-6xl mx-auto px-4 py-6">
-        <WorkspaceTabs />
-      </main>
+    <div className="min-h-screen bg-slate-50 relative">
+      <div className="brand-watermark" />
+      <div className="relative z-10">
+        <Header userName={session.user.name ?? "Usuário"} />
+        <main className="max-w-6xl mx-auto px-4 py-6">
+          <WorkspaceTabs />
+        </main>
+      </div>
     </div>
   );
 }

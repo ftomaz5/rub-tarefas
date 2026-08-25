@@ -9,12 +9,12 @@ export function WorkspaceTabs() {
 
   return (
     <div>
-      <div className="flex gap-1 mb-5 bg-slate-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 mb-5 bg-slate-100 rounded-xl p-1 w-fit">
         <button
           onClick={() => setWorkspace("LOJA")}
-          className={`text-sm font-medium px-4 py-1.5 rounded-md transition-colors ${
+          className={`text-sm font-medium px-4 py-1.5 rounded-lg transition-all ${
             workspace === "LOJA"
-              ? "bg-white text-slate-900 shadow-sm"
+              ? "bg-brand-900 text-white shadow-sm"
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
@@ -22,9 +22,9 @@ export function WorkspaceTabs() {
         </button>
         <button
           onClick={() => setWorkspace("PESSOAL")}
-          className={`text-sm font-medium px-4 py-1.5 rounded-md transition-colors ${
+          className={`text-sm font-medium px-4 py-1.5 rounded-lg transition-all ${
             workspace === "PESSOAL"
-              ? "bg-white text-slate-900 shadow-sm"
+              ? "bg-brand-900 text-white shadow-sm"
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
