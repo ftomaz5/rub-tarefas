@@ -1,0 +1,76 @@
+// Schema do banco de dados - Rede Única de Baterias Bandeirantes | App de Tarefas
+// Rode `npm run db:push` depois de configurar DATABASE_URL no .env
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Autenticação ----------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          Role      @default(FUNCIONARIO)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tasks         Task[]    @relation("TaskOwner")
+  assignedTasks Task[]    @relation("TaskAssignee")
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN         // dono da loja, gerencia tudo
+  FUNCIONARIO   // colaborador, cria e move tarefas
+}
+
+// ---------- Espaços de tarefas ----------
+// Cada tarefa pertence a um "espaço": pessoal (só do dono) ou da loja (compartilhado)
+
+enum Workspace {
+  PESSOAL
+  LOJA
+}
+
+enum Status {
+  A_FAZER
+  FAZENDO
+  FEITO
+}
+
+enum Priority {
+  BAIXA
+  MEDIA
+  ALTA
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  workspace   Workspace @default(LOJA)
+  status      Status    @default(A_FAZER)
+  priority    Priority  @default(MEDIA)
+  dueDate     DateTime?
+  position    Int       @default(0) // ordenação dentro da coluna
+
+  ownerId     String
+  owner       User      @relation("TaskOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  assigneeId  String?
+  assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspace, status])
+  @@map("tasks")
+}
