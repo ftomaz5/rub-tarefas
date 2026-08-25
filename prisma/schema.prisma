@@ -52,6 +52,13 @@ enum Priority {
   ALTA
 }
 
+enum BatteryType {
+  IMPAR
+  UNICA
+  BATS
+  OUTRAS
+}
+
 model Task {
   id          String    @id @default(cuid())
   title       String
@@ -62,6 +69,12 @@ model Task {
   dueDate     DateTime?
   position    Int       @default(0) // ordenação dentro da coluna
   completedAt DateTime? // preenchido quando a tarefa é marcada como concluída (some da tela principal, mas fica salva)
+
+  // Dados do cliente (opcional, usado nas tarefas da loja para atendimentos)
+  clientName    String?
+  clientPhone   String?
+  clientAddress String?
+  batteryType   BatteryType?
 
   ownerId     String
   owner       User      @relation("TaskOwner", fields: [ownerId], references: [id], onDelete: Cascade)

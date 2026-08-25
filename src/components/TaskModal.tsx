@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TaskItem, Workspace, Priority, Status, TaskUser, STATUS_LABELS, STATUS_ORDER } from "@/lib/types";
+import {
+  TaskItem,
+  Workspace,
+  Priority,
+  Status,
+  BatteryType,
+  TaskUser,
+  STATUS_LABELS,
+  STATUS_ORDER,
+  BATTERY_TYPE_LABELS,
+  BATTERY_TYPE_ORDER,
+} from "@/lib/types";
 
 interface Props {
   open: boolean;
@@ -17,8 +28,20 @@ interface Props {
     status?: Status;
     dueDate: string | null;
     assigneeId: string | null;
+    clientName: string | null;
+    clientPhone: string | null;
+    clientAddress: string | null;
+    batteryType: BatteryType | null;
   }) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400 pt-1">
+      {children}
+    </h3>
+  );
 }
 
 export function TaskModal({
@@ -36,6 +59,10 @@ export function TaskModal({
   const [status, setStatus] = useState<Status>("A_FAZER");
   const [dueDate, setDueDate] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientAddress, setClientAddress] = useState("");
+  const [batteryType, setBatteryType] = useState<BatteryType | "">("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -46,6 +73,10 @@ export function TaskModal({
       setStatus(task.status);
       setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : "");
       setAssigneeId(task.assignee?.id ?? "");
+      setClientName(task.clientName ?? "");
+      setClientPhone(task.clientPhone ?? "");
+      setClientAddress(task.clientAddress ?? "");
+      setBatteryType(task.batteryType ?? "");
     } else {
       setTitle("");
       setDescription("");
@@ -53,6 +84,10 @@ export function TaskModal({
       setStatus("A_FAZER");
       setDueDate("");
       setAssigneeId("");
+      setClientName("");
+      setClientPhone("");
+      setClientAddress("");
+      setBatteryType("");
     }
   }, [task, open]);
 
@@ -70,6 +105,10 @@ export function TaskModal({
       status: task ? status : undefined,
       dueDate: dueDate || null,
       assigneeId: assigneeId || null,
+      clientName: clientName.trim() || null,
+      clientPhone: clientPhone.trim() || null,
+      clientAddress: clientAddress.trim() || null,
+      batteryType: batteryType || null,
     });
     setSaving(false);
   }
@@ -184,6 +223,70 @@ export function TaskModal({
                 ))}
               </select>
             </div>
+          )}
+
+          {workspace === "LOJA" && (
+            <>
+              <div className="border-t border-slate-200 -mx-5 px-5 pt-1" />
+              <SectionLabel>Dados do cliente (opcional)</SectionLabel>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Nome
+                </label>
+                <input
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  placeholder="Nome do cliente"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Telefone
+                  </label>
+                  <input
+                    type="tel"
+                    value={clientPhone}
+                    onChange={(e) => setClientPhone(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Baterias
+                  </label>
+                  <select
+                    value={batteryType}
+                    onChange={(e) => setBatteryType(e.target.value as BatteryType | "")}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    <option value="">Selecione</option>
+                    {BATTERY_TYPE_ORDER.map((b) => (
+                      <option key={b} value={b}>
+                        {BATTERY_TYPE_LABELS[b]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Endereço
+                </label>
+                <input
+                  value={clientAddress}
+                  onChange={(e) => setClientAddress(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  placeholder="Rua, número, bairro"
+                />
+              </div>
+            </>
           )}
 
           <div className="flex gap-2 pt-2">

@@ -19,6 +19,7 @@ import {
   Status,
   Workspace,
   Priority,
+  BatteryType,
   STATUS_ORDER,
 } from "@/lib/types";
 
@@ -111,6 +112,10 @@ export function KanbanBoard({ workspace }: Props) {
     status?: Status;
     dueDate: string | null;
     assigneeId: string | null;
+    clientName: string | null;
+    clientPhone: string | null;
+    clientAddress: string | null;
+    batteryType: BatteryType | null;
   }) {
     if (data.id) {
       const res = await fetch(`/api/tasks/${data.id}`, {
@@ -123,6 +128,10 @@ export function KanbanBoard({ workspace }: Props) {
           status: data.status,
           dueDate: data.dueDate,
           assigneeId: data.assigneeId,
+          clientName: data.clientName,
+          clientPhone: data.clientPhone,
+          clientAddress: data.clientAddress,
+          batteryType: data.batteryType,
         }),
       });
       if (res.ok) {
@@ -141,6 +150,10 @@ export function KanbanBoard({ workspace }: Props) {
           priority: data.priority,
           dueDate: data.dueDate,
           assigneeId: data.assigneeId,
+          clientName: data.clientName,
+          clientPhone: data.clientPhone,
+          clientAddress: data.clientAddress,
+          batteryType: data.batteryType,
         }),
       });
       if (res.ok) {

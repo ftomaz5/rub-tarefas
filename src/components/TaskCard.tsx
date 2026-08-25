@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { TaskItem, PRIORITY_LABELS, PRIORITY_COLORS } from "@/lib/types";
+import { TaskItem, PRIORITY_LABELS, PRIORITY_COLORS, BATTERY_TYPE_LABELS } from "@/lib/types";
 
 interface Props {
   task: TaskItem;
@@ -40,6 +40,13 @@ export function TaskCard({ task, onClick, onComplete }: Props) {
         </h4>
       </div>
 
+      {task.clientName && (
+        <p className="text-xs text-slate-600 mb-1 flex items-center gap-1">
+          <span className="text-slate-400">👤</span>
+          {task.clientName}
+        </p>
+      )}
+
       {task.description && (
         <p className="text-xs text-slate-500 mb-2 line-clamp-2">
           {task.description}
@@ -56,6 +63,12 @@ export function TaskCard({ task, onClick, onComplete }: Props) {
         {task.workspace === "LOJA" && (
           <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
             Loja
+          </span>
+        )}
+
+        {task.batteryType && (
+          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+            🔋 {BATTERY_TYPE_LABELS[task.batteryType]}
           </span>
         )}
 

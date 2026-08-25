@@ -22,6 +22,10 @@ export const taskSchema = z.object({
   priority: z.enum(["BAIXA", "MEDIA", "ALTA"]).optional(),
   dueDate: z.string().optional().nullable(),
   assigneeId: z.string().optional().nullable(),
+  clientName: z.string().max(120).optional().nullable(),
+  clientPhone: z.string().max(30).optional().nullable(),
+  clientAddress: z.string().max(300).optional().nullable(),
+  batteryType: z.enum(["IMPAR", "UNICA", "BATS", "OUTRAS"]).optional().nullable(),
 });
 
 export const taskUpdateSchema = taskSchema.partial().extend({

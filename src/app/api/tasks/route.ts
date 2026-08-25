@@ -77,6 +77,10 @@ export async function POST(req: Request) {
       ownerId: session.user.id,
       assigneeId: data.workspace === "LOJA" ? data.assigneeId ?? undefined : undefined,
       position: (last?.position ?? -1) + 1,
+      clientName: data.clientName ?? undefined,
+      clientPhone: data.clientPhone ?? undefined,
+      clientAddress: data.clientAddress ?? undefined,
+      batteryType: data.batteryType ?? undefined,
     },
     include: {
       owner: { select: { id: true, name: true } },
