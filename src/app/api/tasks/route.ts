@@ -12,18 +12,22 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const workspace = searchParams.get("workspace");
+  const includeCompleted = searchParams.get("includeCompleted") === "true";
 
   const tasks = await prisma.task.findMany({
     where: {
       ...(workspace === "PESSOAL"
         ? { workspace: "PESSOAL", ownerId: session.user.id }
         : { workspace: "LOJA" }),
+      ...(includeCompleted ? {} : { completedAt: null }),
     },
     include: {
       owner: { select: { id: true, name: true } },
       assignee: { select: { id: true, name: true } },
     },
-    orderBy: [{ status: "asc" }, { position: "asc" }],
+    orderBy: includeCompleted
+      ? [{ completedAt: "desc" }]
+      : [{ status: "asc" }, { position: "asc" }],
   });
 
   return NextResponse.json({ tasks });

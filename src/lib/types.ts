@@ -16,6 +16,7 @@ export interface TaskItem {
   priority: Priority;
   dueDate: string | null;
   position: number;
+  completedAt: string | null;
   owner: TaskUser;
   assignee: TaskUser | null;
 }

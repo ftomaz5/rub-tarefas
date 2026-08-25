@@ -159,6 +159,22 @@ export function KanbanBoard({ workspace }: Props) {
     }
   }
 
+  async function handleComplete(task: TaskItem) {
+    // Atualização otimista: some da tela na hora
+    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ completed: true }),
+    });
+
+    if (!res.ok) {
+      // Reverte em caso de erro
+      loadTasks();
+    }
+  }
+
   const tasksByStatus = (status: Status) =>
     tasks.filter((t) => t.status === status).sort((a, b) => a.position - b.position);
 
@@ -194,6 +210,7 @@ export function KanbanBoard({ workspace }: Props) {
                   setEditingTask(task);
                   setModalOpen(true);
                 }}
+                onTaskComplete={handleComplete}
               />
             ))}
           </div>
@@ -201,7 +218,7 @@ export function KanbanBoard({ workspace }: Props) {
           <DragOverlay>
             {activeTask ? (
               <div className="rotate-2 opacity-90">
-                <TaskCard task={activeTask} onClick={() => {}} />
+                <TaskCard task={activeTask} onClick={() => {}} onComplete={() => {}} />
               </div>
             ) : null}
           </DragOverlay>

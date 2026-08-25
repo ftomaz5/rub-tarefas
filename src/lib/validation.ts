@@ -27,4 +27,5 @@ export const taskSchema = z.object({
 export const taskUpdateSchema = taskSchema.partial().extend({
   id: z.string(),
   position: z.number().optional(),
+  completed: z.boolean().optional(), // true = marca como concluída (sai da tela principal); false = reabre
 });

@@ -51,7 +51,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
   }
 
-  const { title, description, status, priority, dueDate, assigneeId, position } =
+  const { title, description, status, priority, dueDate, assigneeId, position, completed } =
     parsed.data;
 
   const updated = await prisma.task.update({
@@ -66,6 +66,12 @@ export async function PATCH(
         ? { assigneeId }
         : {}),
       ...(position !== undefined ? { position } : {}),
+      ...(completed !== undefined
+        ? {
+            completedAt: completed ? new Date() : null,
+            status: completed ? "FEITO" : status ?? task.status,
+          }
+        : {}),
     },
     include: {
       owner: { select: { id: true, name: true } },

@@ -7,9 +7,10 @@ import { TaskItem, PRIORITY_LABELS, PRIORITY_COLORS } from "@/lib/types";
 interface Props {
   task: TaskItem;
   onClick: () => void;
+  onComplete: () => void;
 }
 
-export function TaskCard({ task, onClick }: Props) {
+export function TaskCard({ task, onClick, onComplete }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: task.id });
 
@@ -77,6 +78,18 @@ export function TaskCard({ task, onClick }: Props) {
           </span>
         )}
       </div>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onComplete();
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        className="mt-2 w-full text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md py-1.5 transition-colors"
+      >
+        ✓ Concluir tarefa
+      </button>
     </div>
   );
 }

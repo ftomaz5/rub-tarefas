@@ -61,6 +61,7 @@ model Task {
   priority    Priority  @default(MEDIA)
   dueDate     DateTime?
   position    Int       @default(0) // ordenação dentro da coluna
+  completedAt DateTime? // preenchido quando a tarefa é marcada como concluída (some da tela principal, mas fica salva)
 
   ownerId     String
   owner       User      @relation("TaskOwner", fields: [ownerId], references: [id], onDelete: Cascade)
@@ -72,5 +73,6 @@ model Task {
   updatedAt   DateTime  @updatedAt
 
   @@index([workspace, status])
+  @@index([workspace, completedAt])
   @@map("tasks")
 }
