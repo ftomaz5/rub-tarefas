@@ -108,6 +108,7 @@ export function KanbanBoard({ workspace }: Props) {
     title: string;
     description: string | null;
     priority: Priority;
+    status?: Status;
     dueDate: string | null;
     assigneeId: string | null;
   }) {
@@ -119,6 +120,7 @@ export function KanbanBoard({ workspace }: Props) {
           title: data.title,
           description: data.description,
           priority: data.priority,
+          status: data.status,
           dueDate: data.dueDate,
           assigneeId: data.assigneeId,
         }),

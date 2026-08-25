@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TaskItem, Workspace, Priority, TaskUser } from "@/lib/types";
+import { TaskItem, Workspace, Priority, Status, TaskUser, STATUS_LABELS, STATUS_ORDER } from "@/lib/types";
 
 interface Props {
   open: boolean;
@@ -14,6 +14,7 @@ interface Props {
     title: string;
     description: string | null;
     priority: Priority;
+    status?: Status;
     dueDate: string | null;
     assigneeId: string | null;
   }) => Promise<void>;
@@ -32,6 +33,7 @@ export function TaskModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<Priority>("MEDIA");
+  const [status, setStatus] = useState<Status>("A_FAZER");
   const [dueDate, setDueDate] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [saving, setSaving] = useState(false);
@@ -41,12 +43,14 @@ export function TaskModal({
       setTitle(task.title);
       setDescription(task.description ?? "");
       setPriority(task.priority);
+      setStatus(task.status);
       setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : "");
       setAssigneeId(task.assignee?.id ?? "");
     } else {
       setTitle("");
       setDescription("");
       setPriority("MEDIA");
+      setStatus("A_FAZER");
       setDueDate("");
       setAssigneeId("");
     }
@@ -63,6 +67,7 @@ export function TaskModal({
       title: title.trim(),
       description: description.trim() || null,
       priority,
+      status: task ? status : undefined,
       dueDate: dueDate || null,
       assigneeId: assigneeId || null,
     });
@@ -112,6 +117,25 @@ export function TaskModal({
               placeholder="Detalhes da tarefa..."
             />
           </div>
+
+          {task && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Status
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as Status)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                {STATUS_ORDER.map((s) => (
+                  <option key={s} value={s}>
+                    {STATUS_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div>
