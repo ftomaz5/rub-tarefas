@@ -73,7 +73,9 @@ export async function PATCH(
       ...(description !== undefined ? { description } : {}),
       ...(status !== undefined ? { status } : {}),
       ...(priority !== undefined ? { priority } : {}),
-      ...(dueDate !== undefined ? { dueDate: dueDate ? new Date(dueDate) : null } : {}),
+      ...(dueDate !== undefined
+        ? { dueDate: dueDate ? new Date(dueDate) : null, reminderSentAt: null }
+        : {}),
       ...(assigneeId !== undefined && task.workspace === "LOJA"
         ? { assigneeId }
         : {}),

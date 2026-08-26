@@ -23,8 +23,23 @@ model User {
 
   tasks         Task[]    @relation("TaskOwner")
   assignedTasks Task[]    @relation("TaskAssignee")
+  pushSubscriptions PushSubscription[]
 
   @@map("users")
+}
+
+// Inscrição de notificações push (Web Push) de um dispositivo/navegador do usuário.
+// Cada usuário pode ter mais de uma (ex: celular + computador).
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@map("push_subscriptions")
 }
 
 enum Role {
@@ -69,6 +84,7 @@ model Task {
   dueDate     DateTime?
   position    Int       @default(0) // ordenação dentro da coluna
   completedAt DateTime? // preenchido quando a tarefa é marcada como concluída (some da tela principal, mas fica salva)
+  reminderSentAt DateTime? // preenchido quando o lembrete de 15 min antes já foi enviado (evita repetir)
 
   // Dados do cliente (opcional, usado nas tarefas da loja para atendimentos)
   clientName    String?

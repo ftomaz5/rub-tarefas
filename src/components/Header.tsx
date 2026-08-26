@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { signOut } from "next-auth/react";
+import { PushNotifications } from "./PushNotifications";
 
 interface Props {
   userName: string;
@@ -30,6 +31,7 @@ export function Header({ userName }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <PushNotifications />
           <span className="text-sm text-slate-600 hidden sm:inline">
             Olá, {userName.split(" ")[0]}
           </span>
