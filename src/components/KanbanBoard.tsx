@@ -173,13 +173,16 @@ export function KanbanBoard({ workspace }: Props) {
   }
 
   async function handleComplete(task: TaskItem) {
-    // Atualização otimista: some da tela na hora
-    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+    // Atualização otimista: move para a coluna Feito na hora,
+    // sem sumir do quadro (igual arrastar manualmente para lá).
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, status: "FEITO" } : t))
+    );
 
     const res = await fetch(`/api/tasks/${task.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ completed: true }),
+      body: JSON.stringify({ status: "FEITO" }),
     });
 
     if (!res.ok) {

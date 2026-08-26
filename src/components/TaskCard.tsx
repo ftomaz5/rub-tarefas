@@ -111,32 +111,36 @@ export function TaskCard({ task, onClick, onComplete }: Props) {
         )}
       </div>
 
-      <div className="flex gap-1.5 mt-2.5">
-        {mapsUrl && (
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="flex items-center justify-center text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 active:scale-[0.98] rounded-lg py-1.5 px-2.5 transition-all shrink-0"
-            title="Traçar rota até o cliente"
-          >
-            📍 Rota
-          </a>
-        )}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onComplete();
-          }}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="flex-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 active:scale-[0.98] rounded-lg py-1.5 transition-all"
-        >
-          ✓ Concluir tarefa
-        </button>
-      </div>
+      {(mapsUrl || task.status !== "FEITO") && (
+        <div className="flex gap-1.5 mt-2.5">
+          {mapsUrl && (
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="flex items-center justify-center text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 active:scale-[0.98] rounded-lg py-1.5 px-2.5 transition-all shrink-0"
+              title="Traçar rota até o cliente"
+            >
+              📍 Rota
+            </a>
+          )}
+          {task.status !== "FEITO" && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onComplete();
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="flex-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 active:scale-[0.98] rounded-lg py-1.5 transition-all"
+            >
+              ✓ Concluir tarefa
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
