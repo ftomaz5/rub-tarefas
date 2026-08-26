@@ -92,6 +92,10 @@ model Task {
   clientAddress String?
   batteryType   BatteryType?
 
+  // Foto da garantia da bateria (opcional). Guardada no Vercel Blob — aqui
+  // fica só o link público da imagem, não o arquivo em si.
+  warrantyPhotoUrl String?
+
   ownerId     String
   owner       User      @relation("TaskOwner", fields: [ownerId], references: [id], onDelete: Cascade)
 

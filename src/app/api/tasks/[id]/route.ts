@@ -64,6 +64,7 @@ export async function PATCH(
     clientPhone,
     clientAddress,
     batteryType,
+    warrantyPhotoUrl,
   } = parsed.data;
 
   const updated = await prisma.task.update({
@@ -84,6 +85,7 @@ export async function PATCH(
       ...(clientPhone !== undefined ? { clientPhone } : {}),
       ...(clientAddress !== undefined ? { clientAddress } : {}),
       ...(batteryType !== undefined ? { batteryType } : {}),
+      ...(warrantyPhotoUrl !== undefined ? { warrantyPhotoUrl } : {}),
       ...(completed !== undefined
         ? {
             completedAt: completed ? new Date() : null,
