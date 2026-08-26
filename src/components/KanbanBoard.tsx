@@ -10,6 +10,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import { KanbanColumn } from "./KanbanColumn";
 import { TaskCard } from "./TaskCard";
 import { TaskModal } from "./TaskModal";
@@ -37,7 +38,9 @@ export function KanbanBoard({ workspace }: Props) {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
+      // Distância maior antes de considerar "arrastar": evita que um toque
+      // ou clique rápido (ex: no celular) já mova o card sem querer.
+      activationConstraint: { distance: 8 },
     })
   );
 
@@ -70,11 +73,13 @@ export function KanbanBoard({ workspace }: Props) {
     setActiveTask(null);
     const { active, over } = event;
     if (!over) return;
+    if (active.id === over.id) return;
 
     const activeTask = tasks.find((t) => t.id === active.id);
     if (!activeTask) return;
 
-    // Determina a coluna de destino: pode ser o id de outra tarefa (mesma coluna) ou o id da coluna
+    // Determina a coluna de destino: pode ser o id de outra tarefa (mesma coluna
+    // ou coluna diferente) ou o id da própria coluna (quando solta em espaço vazio)
     let targetStatus: Status;
     const overTask = tasks.find((t) => t.id === over.id);
     if (overTask) {
@@ -85,17 +90,55 @@ export function KanbanBoard({ workspace }: Props) {
       return;
     }
 
-    if (activeTask.status === targetStatus) return;
+    if (activeTask.status === targetStatus) {
+      // Reordenando dentro da mesma coluna: recalcula a posição de todas as
+      // tarefas dessa coluna e salva a nova ordem (antes isso não era salvo).
+      if (!overTask || overTask.id === activeTask.id) return;
+
+      const columnTasks = tasksByStatus(targetStatus);
+      const oldIndex = columnTasks.findIndex((t) => t.id === activeTask.id);
+      const newIndex = columnTasks.findIndex((t) => t.id === overTask.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(columnTasks, oldIndex, newIndex);
+      const positionById = new Map(reordered.map((t, i) => [t.id, i]));
+
+      // Atualização otimista
+      setTasks((prev) =>
+        prev.map((t) =>
+          positionById.has(t.id) ? { ...t, position: positionById.get(t.id)! } : t
+        )
+      );
+
+      const res = await fetch(`/api/tasks/reorder`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: reordered.map((t, i) => ({ id: t.id, position: i })),
+        }),
+      });
+
+      if (!res.ok) {
+        loadTasks();
+      }
+      return;
+    }
+
+    // Movendo para outra coluna: entra no final dela
+    const destColumnTasks = tasksByStatus(targetStatus);
+    const newPosition = destColumnTasks.length;
 
     // Atualização otimista
     setTasks((prev) =>
-      prev.map((t) => (t.id === activeTask.id ? { ...t, status: targetStatus } : t))
+      prev.map((t) =>
+        t.id === activeTask.id ? { ...t, status: targetStatus, position: newPosition } : t
+      )
     );
 
     const res = await fetch(`/api/tasks/${activeTask.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: targetStatus }),
+      body: JSON.stringify({ status: targetStatus, position: newPosition }),
     });
 
     if (!res.ok) {
