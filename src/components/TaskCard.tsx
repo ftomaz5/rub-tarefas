@@ -8,9 +8,10 @@ interface Props {
   task: TaskItem;
   onClick: () => void;
   onComplete: () => void;
+  onStart: () => void;
 }
 
-export function TaskCard({ task, onClick, onComplete }: Props) {
+export function TaskCard({ task, onClick, onComplete, onStart }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: task.id });
 
@@ -125,6 +126,19 @@ export function TaskCard({ task, onClick, onComplete }: Props) {
             >
               📍 Rota
             </a>
+          )}
+          {task.status === "A_FAZER" && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onStart();
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="flex-1 text-xs font-semibold text-gold-700 bg-gold-50 hover:bg-gold-100 active:scale-[0.98] rounded-lg py-1.5 transition-all"
+            >
+              ▶ Iniciar tarefa
+            </button>
           )}
           {task.status !== "FEITO" && (
             <button

@@ -10,6 +10,7 @@ interface Props {
   tasks: TaskItem[];
   onTaskClick: (task: TaskItem) => void;
   onTaskComplete: (task: TaskItem) => void;
+  onTaskStart: (task: TaskItem) => void;
 }
 
 const COLUMN_STYLES: Record<Status, string> = {
@@ -24,7 +25,7 @@ const COLUMN_DOT: Record<Status, string> = {
   FEITO: "bg-emerald-400",
 };
 
-export function KanbanColumn({ status, tasks, onTaskClick, onTaskComplete }: Props) {
+export function KanbanColumn({ status, tasks, onTaskClick, onTaskComplete, onTaskStart }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
@@ -55,6 +56,7 @@ export function KanbanColumn({ status, tasks, onTaskClick, onTaskComplete }: Pro
               task={task}
               onClick={() => onTaskClick(task)}
               onComplete={() => onTaskComplete(task)}
+              onStart={() => onTaskStart(task)}
             />
           ))}
         </SortableContext>

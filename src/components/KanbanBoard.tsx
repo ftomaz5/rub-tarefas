@@ -191,6 +191,25 @@ export function KanbanBoard({ workspace }: Props) {
     }
   }
 
+  async function handleStart(task: TaskItem) {
+    // Atualização otimista: move para a coluna Fazendo na hora,
+    // sem sumir do quadro (igual arrastar manualmente para lá).
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, status: "FAZENDO" } : t))
+    );
+
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "FAZENDO" }),
+    });
+
+    if (!res.ok) {
+      // Reverte em caso de erro
+      loadTasks();
+    }
+  }
+
   const tasksByStatus = (status: Status) =>
     tasks
       .filter((t) => t.status === status)
@@ -238,6 +257,7 @@ export function KanbanBoard({ workspace }: Props) {
                   setModalOpen(true);
                 }}
                 onTaskComplete={handleComplete}
+                onTaskStart={handleStart}
               />
             ))}
           </div>
@@ -245,7 +265,12 @@ export function KanbanBoard({ workspace }: Props) {
           <DragOverlay>
             {activeTask ? (
               <div className="rotate-2 opacity-90">
-                <TaskCard task={activeTask} onClick={() => {}} onComplete={() => {}} />
+                <TaskCard
+                  task={activeTask}
+                  onClick={() => {}}
+                  onComplete={() => {}}
+                  onStart={() => {}}
+                />
               </div>
             ) : null}
           </DragOverlay>
