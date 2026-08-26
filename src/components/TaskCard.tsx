@@ -25,6 +25,10 @@ export function TaskCard({ task, onClick, onComplete }: Props) {
     task.status !== "FEITO" &&
     new Date(task.dueDate) < new Date(new Date().toDateString());
 
+  const hasTime =
+    task.dueDate &&
+    (new Date(task.dueDate).getHours() !== 0 || new Date(task.dueDate).getMinutes() !== 0);
+
   const mapsUrl = task.clientAddress
     ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
         task.clientAddress
@@ -92,6 +96,11 @@ export function TaskCard({ task, onClick, onComplete }: Props) {
               day: "2-digit",
               month: "2-digit",
             })}
+            {hasTime &&
+              ` · ${new Date(task.dueDate).toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}`}
           </span>
         )}
 

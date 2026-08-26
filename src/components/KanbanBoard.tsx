@@ -189,7 +189,18 @@ export function KanbanBoard({ workspace }: Props) {
   }
 
   const tasksByStatus = (status: Status) =>
-    tasks.filter((t) => t.status === status).sort((a, b) => a.position - b.position);
+    tasks
+      .filter((t) => t.status === status)
+      .sort((a, b) => {
+        // Ordena por dia e horário: tarefas com prazo mais próximo primeiro.
+        // Tarefas sem prazo ficam sempre no final.
+        if (a.dueDate && b.dueDate) {
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        }
+        if (a.dueDate) return -1;
+        if (b.dueDate) return 1;
+        return a.position - b.position;
+      });
 
   return (
     <div>

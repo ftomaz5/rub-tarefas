@@ -58,6 +58,7 @@ export function TaskModal({
   const [priority, setPriority] = useState<Priority>("MEDIA");
   const [status, setStatus] = useState<Status>("A_FAZER");
   const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
@@ -71,7 +72,17 @@ export function TaskModal({
       setDescription(task.description ?? "");
       setPriority(task.priority);
       setStatus(task.status);
-      setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : "");
+      if (task.dueDate) {
+        const d = new Date(task.dueDate);
+        setDueDate(task.dueDate.slice(0, 10));
+        // Só preenche a hora se a tarefa realmente tiver um horário definido
+        // (tarefas antigas, sem hora, foram salvas à meia-noite)
+        const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0;
+        setDueTime(hasTime ? d.toTimeString().slice(0, 5) : "");
+      } else {
+        setDueDate("");
+        setDueTime("");
+      }
       setAssigneeId(task.assignee?.id ?? "");
       setClientName(task.clientName ?? "");
       setClientPhone(task.clientPhone ?? "");
@@ -83,6 +94,7 @@ export function TaskModal({
       setPriority("MEDIA");
       setStatus("A_FAZER");
       setDueDate("");
+      setDueTime("");
       setAssigneeId("");
       setClientName("");
       setClientPhone("");
@@ -92,6 +104,16 @@ export function TaskModal({
   }, [task, open]);
 
   if (!open) return null;
+
+  function buildDueDate(): string | null {
+    if (!dueDate) return null;
+    // Combina data + hora (quando informada) em um horário local,
+    // evitando problemas de fuso ao converter para ISO.
+    const [year, month, day] = dueDate.split("-").map(Number);
+    const [hours, minutes] = dueTime ? dueTime.split(":").map(Number) : [0, 0];
+    const combined = new Date(year, (month ?? 1) - 1, day, hours, minutes);
+    return combined.toISOString();
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -103,7 +125,7 @@ export function TaskModal({
       description: description.trim() || null,
       priority,
       status: task ? status : undefined,
-      dueDate: dueDate || null,
+      dueDate: buildDueDate(),
       assigneeId: assigneeId || null,
       clientName: clientName.trim() || null,
       clientPhone: clientPhone.trim() || null,
@@ -176,22 +198,22 @@ export function TaskModal({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Prioridade
-              </label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as Priority)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-              >
-                <option value="BAIXA">Baixa</option>
-                <option value="MEDIA">Média</option>
-                <option value="ALTA">Alta</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Prioridade
+            </label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as Priority)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              <option value="BAIXA">Baixa</option>
+              <option value="MEDIA">Média</option>
+              <option value="ALTA">Alta</option>
+            </select>
+          </div>
 
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Prazo
@@ -199,11 +221,34 @@ export function TaskModal({
               <input
                 type="date"
                 value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
+                onChange={(e) => {
+                  setDueDate(e.target.value);
+                  if (!e.target.value) setDueTime("");
+                }}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Horário (opcional)
+              </label>
+              <input
+                type="time"
+                value={dueTime}
+                disabled={!dueDate}
+                onChange={(e) => setDueTime(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-50 disabled:text-slate-400"
+              />
+            </div>
           </div>
+          {dueDate && (
+            <p className="text-xs text-slate-400 -mt-2">
+              {dueTime
+                ? "A tarefa entra na fila do dia pelo horário definido."
+                : "Sem horário, a tarefa aparece depois das que têm hora marcada nesse dia."}
+            </p>
+          )}
 
           {workspace === "LOJA" && (
             <div>
