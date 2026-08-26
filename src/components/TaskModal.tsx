@@ -68,6 +68,7 @@ export function TaskModal({
   const [warrantyPhotoUrl, setWarrantyPhotoUrl] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState("");
+  const [photoZoomOpen, setPhotoZoomOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -108,6 +109,7 @@ export function TaskModal({
       setWarrantyPhotoUrl(null);
     }
     setPhotoError("");
+    setPhotoZoomOpen(false);
   }, [task, open]);
 
   if (!open) return null;
@@ -168,6 +170,35 @@ export function TaskModal({
   }
 
   return (
+    <>
+    {photoZoomOpen && warrantyPhotoUrl && (
+      <div
+        className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4 animate-[fadeIn_0.15s_ease-out]"
+        onClick={() => setPhotoZoomOpen(false)}
+      >
+        <button
+          type="button"
+          onClick={() => setPhotoZoomOpen(false)}
+          title="Fechar"
+          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 text-white text-xl flex items-center justify-center hover:bg-white/20"
+        >
+          ×
+        </button>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={warrantyPhotoUrl}
+          alt="Foto da garantia (ampliada)"
+          onClick={(e) => e.stopPropagation()}
+          className="max-w-full max-h-full w-auto h-auto object-contain touch-pinch-zoom select-none rounded-sm"
+        />
+        <p
+          onClick={(e) => e.stopPropagation()}
+          className="absolute bottom-4 left-0 right-0 text-center text-xs text-white/60 px-4"
+        >
+          Toque fora da foto para fechar. No celular, dá para dar zoom com dois dedos.
+        </p>
+      </div>
+    )}
     <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-[fadeIn_0.15s_ease-out]">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-[slideUp_0.2s_ease-out]">
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
@@ -399,8 +430,17 @@ export function TaskModal({
                     <img
                       src={warrantyPhotoUrl}
                       alt="Foto da garantia"
-                      className="h-28 w-28 rounded-lg object-cover border border-slate-200"
+                      onClick={() => setPhotoZoomOpen(true)}
+                      className="h-40 w-40 rounded-lg object-cover border border-slate-200 cursor-zoom-in hover:opacity-90 transition-opacity"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setPhotoZoomOpen(true)}
+                      title="Ampliar foto"
+                      className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-full bg-slate-900/80 text-white text-sm flex items-center justify-center shadow-sm hover:bg-slate-900"
+                    >
+                      🔍
+                    </button>
                     <button
                       type="button"
                       onClick={() => setWarrantyPhotoUrl(null)}
@@ -467,5 +507,6 @@ export function TaskModal({
         </form>
       </div>
     </div>
+    </>
   );
 }
