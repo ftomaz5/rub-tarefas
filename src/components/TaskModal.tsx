@@ -32,6 +32,7 @@ interface Props {
     clientPhone: string | null;
     clientAddress: string | null;
     batteryType: BatteryType | null;
+    warrantyPhotoUrl: string | null;
   }) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
 }
@@ -64,6 +65,9 @@ export function TaskModal({
   const [clientPhone, setClientPhone] = useState("");
   const [clientAddress, setClientAddress] = useState("");
   const [batteryType, setBatteryType] = useState<BatteryType | "">("");
+  const [warrantyPhotoUrl, setWarrantyPhotoUrl] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -88,6 +92,7 @@ export function TaskModal({
       setClientPhone(task.clientPhone ?? "");
       setClientAddress(task.clientAddress ?? "");
       setBatteryType(task.batteryType ?? "");
+      setWarrantyPhotoUrl(task.warrantyPhotoUrl ?? null);
     } else {
       setTitle("");
       setDescription("");
@@ -100,10 +105,36 @@ export function TaskModal({
       setClientPhone("");
       setClientAddress("");
       setBatteryType("");
+      setWarrantyPhotoUrl(null);
     }
+    setPhotoError("");
   }, [task, open]);
 
   if (!open) return null;
+
+  async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // permite escolher o mesmo arquivo de novo depois
+    if (!file) return;
+
+    setPhotoError("");
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setPhotoError(data?.error ?? "Não foi possível enviar a foto.");
+        return;
+      }
+      setWarrantyPhotoUrl(data.url);
+    } catch {
+      setPhotoError("Não foi possível enviar a foto. Verifique sua conexão.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
 
   function buildDueDate(): string | null {
     if (!dueDate) return null;
@@ -131,6 +162,7 @@ export function TaskModal({
       clientPhone: clientPhone.trim() || null,
       clientAddress: clientAddress.trim() || null,
       batteryType: batteryType || null,
+      warrantyPhotoUrl,
     });
     setSaving(false);
   }
@@ -236,9 +268,18 @@ export function TaskModal({
               <input
                 type="time"
                 value={dueTime}
-                disabled={!dueDate}
-                onChange={(e) => setDueTime(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-50 disabled:text-slate-400"
+                onChange={(e) => {
+                  setDueTime(e.target.value);
+                  // Se ainda não tem data, assume hoje ao informar um horário
+                  if (e.target.value && !dueDate) {
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, "0");
+                    const dd = String(today.getDate()).padStart(2, "0");
+                    setDueDate(`${yyyy}-${mm}-${dd}`);
+                  }
+                }}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
           </div>
@@ -346,6 +387,54 @@ export function TaskModal({
                   )}
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Foto da garantia
+                </label>
+
+                {warrantyPhotoUrl ? (
+                  <div className="relative inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={warrantyPhotoUrl}
+                      alt="Foto da garantia"
+                      className="h-28 w-28 rounded-lg object-cover border border-slate-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setWarrantyPhotoUrl(null)}
+                      title="Remover foto"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center shadow-sm hover:bg-slate-700"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex items-center justify-center gap-2 w-full rounded-lg border border-dashed border-slate-300 px-3 py-3 text-sm text-slate-500 hover:border-brand-400 hover:text-brand-700 cursor-pointer transition-colors">
+                    {uploadingPhoto ? (
+                      "Enviando foto..."
+                    ) : (
+                      <>📷 Tirar ou escolher foto</>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handlePhotoSelect}
+                      disabled={uploadingPhoto}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+
+                {photoError && (
+                  <p className="text-xs text-red-600 mt-1">{photoError}</p>
+                )}
+                <p className="text-xs text-slate-400 mt-1">
+                  Fica guardada no app — não some se apagar do celular.
+                </p>
+              </div>
             </>
           )}
 
@@ -369,10 +458,10 @@ export function TaskModal({
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || uploadingPhoto}
               className="text-sm bg-brand-900 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold rounded-lg px-4 py-2 transition-colors shadow-sm"
             >
-              {saving ? "Salvando..." : "Salvar"}
+              {saving ? "Salvando..." : uploadingPhoto ? "Enviando foto..." : "Salvar"}
             </button>
           </div>
         </form>

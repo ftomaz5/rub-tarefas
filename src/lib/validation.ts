@@ -26,6 +26,7 @@ export const taskSchema = z.object({
   clientPhone: z.string().max(30).optional().nullable(),
   clientAddress: z.string().max(300).optional().nullable(),
   batteryType: z.enum(["IMPAR", "UNICA", "BATS", "OUTRAS"]).optional().nullable(),
+  warrantyPhotoUrl: z.string().url().max(500).optional().nullable(),
 });
 
 export const taskUpdateSchema = taskSchema.partial().extend({

@@ -87,6 +87,15 @@ export function TaskCard({ task, onClick, onComplete, onStart }: Props) {
           </span>
         )}
 
+        {task.warrantyPhotoUrl && (
+          <span
+            className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600"
+            title="Tem foto da garantia anexada"
+          >
+            📷 Garantia
+          </span>
+        )}
+
         {task.dueDate && (
           <span
             className={`text-[11px] font-medium px-1.5 py-0.5 rounded ${

@@ -22,6 +22,7 @@ export interface TaskItem {
   clientPhone: string | null;
   clientAddress: string | null;
   batteryType: BatteryType | null;
+  warrantyPhotoUrl: string | null;
   owner: TaskUser;
   assignee: TaskUser | null;
 }

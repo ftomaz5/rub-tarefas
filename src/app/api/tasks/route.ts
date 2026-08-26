@@ -81,6 +81,7 @@ export async function POST(req: Request) {
       clientPhone: data.clientPhone ?? undefined,
       clientAddress: data.clientAddress ?? undefined,
       batteryType: data.batteryType ?? undefined,
+      warrantyPhotoUrl: data.warrantyPhotoUrl ?? undefined,
     },
     include: {
       owner: { select: { id: true, name: true } },

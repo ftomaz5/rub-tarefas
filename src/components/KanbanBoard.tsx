@@ -200,6 +200,7 @@ export function KanbanBoard({ workspace }: Props) {
     clientPhone: string | null;
     clientAddress: string | null;
     batteryType: BatteryType | null;
+    warrantyPhotoUrl: string | null;
   }) {
     if (data.id) {
       const res = await fetch(`/api/tasks/${data.id}`, {
@@ -216,6 +217,7 @@ export function KanbanBoard({ workspace }: Props) {
           clientPhone: data.clientPhone,
           clientAddress: data.clientAddress,
           batteryType: data.batteryType,
+          warrantyPhotoUrl: data.warrantyPhotoUrl,
         }),
       });
       if (res.ok) {
@@ -239,6 +241,7 @@ export function KanbanBoard({ workspace }: Props) {
           clientPhone: data.clientPhone,
           clientAddress: data.clientAddress,
           batteryType: data.batteryType,
+          warrantyPhotoUrl: data.warrantyPhotoUrl,
         }),
       });
       if (res.ok) {
