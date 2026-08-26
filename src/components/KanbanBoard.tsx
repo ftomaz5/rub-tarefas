@@ -37,10 +37,12 @@ export function KanbanBoard({ workspace }: Props) {
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
 
   const sensors = useSensors(
+    // Vale tanto para mouse quanto para toque: só começa a arrastar depois
+    // de SEGURAR parado por meio segundo. Um clique/toque normal (mesmo que
+    // se mova um pouco sem querer) abre a tarefa normalmente — só vira
+    // "arrastar" se a pessoa mantiver o dedo/botão pressionado de propósito.
     useSensor(PointerSensor, {
-      // Distância maior antes de considerar "arrastar": evita que um toque
-      // ou clique rápido (ex: no celular) já mova o card sem querer.
-      activationConstraint: { distance: 8 },
+      activationConstraint: { delay: 500, tolerance: 10 },
     })
   );
 
