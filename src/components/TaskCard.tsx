@@ -3,6 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TaskItem, PRIORITY_LABELS, PRIORITY_COLORS, BATTERY_TYPE_LABELS } from "@/lib/types";
+import { buildMapsUrl } from "@/lib/maps";
 
 interface Props {
   task: TaskItem;
@@ -30,11 +31,7 @@ export function TaskCard({ task, onClick, onComplete, onStart }: Props) {
     task.dueDate &&
     (new Date(task.dueDate).getHours() !== 0 || new Date(task.dueDate).getMinutes() !== 0);
 
-  const mapsUrl = task.clientAddress
-    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-        task.clientAddress
-      )}`
-    : null;
+  const mapsUrl = buildMapsUrl(task.clientAddress);
 
   return (
     <div

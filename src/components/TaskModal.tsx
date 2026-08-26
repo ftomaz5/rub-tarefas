@@ -13,6 +13,7 @@ import {
   BATTERY_TYPE_LABELS,
   BATTERY_TYPE_ORDER,
 } from "@/lib/types";
+import { buildMapsUrl } from "@/lib/maps";
 
 interface Props {
   open: boolean;
@@ -405,18 +406,19 @@ export function TaskModal({
                   />
                   {clientAddress.trim() && (
                     <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-                        clientAddress.trim()
-                      )}`}
+                      href={buildMapsUrl(clientAddress) ?? undefined}
                       target="_blank"
                       rel="noopener noreferrer"
-                      title="Traçar rota até o cliente"
+                      title="Traçar rota da sua localização atual até o cliente"
                       className="shrink-0 flex items-center justify-center gap-1 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg px-3 transition-colors"
                     >
                       📍 Rota
                     </a>
                   )}
                 </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Não precisa digitar "Bandeirantes" — o app já completa isso ao traçar a rota.
+                </p>
               </div>
 
               <div>
