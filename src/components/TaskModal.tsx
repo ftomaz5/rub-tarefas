@@ -279,12 +279,27 @@ export function TaskModal({
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Endereço
                 </label>
-                <input
-                  value={clientAddress}
-                  onChange={(e) => setClientAddress(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  placeholder="Rua, número, bairro"
-                />
+                <div className="flex gap-2">
+                  <input
+                    value={clientAddress}
+                    onChange={(e) => setClientAddress(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    placeholder="Rua, número, bairro"
+                  />
+                  {clientAddress.trim() && (
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+                        clientAddress.trim()
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Traçar rota até o cliente"
+                      className="shrink-0 flex items-center justify-center gap-1 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg px-3 transition-colors"
+                    >
+                      📍 Rota
+                    </a>
+                  )}
+                </div>
               </div>
             </>
           )}
