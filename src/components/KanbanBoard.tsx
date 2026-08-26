@@ -35,6 +35,9 @@ export function KanbanBoard({ workspace }: Props) {
   const [activeTask, setActiveTask] = useState<TaskItem | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
+  const [search, setSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<TaskItem[] | null>(null);
+  const [searching, setSearching] = useState(false);
 
   const sensors = useSensors(
     // Vale tanto para mouse quanto para toque: só começa a arrastar depois
@@ -65,6 +68,42 @@ export function KanbanBoard({ workspace }: Props) {
         .catch(() => {});
     }
   }, [workspace, loadTasks]);
+
+  const runSearch = useCallback(
+    async (term: string) => {
+      const res = await fetch(
+        `/api/tasks?workspace=${workspace}&includeCompleted=true`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const lower = term.toLowerCase();
+        const matches = (data.tasks as TaskItem[]).filter((t) =>
+          t.clientName?.toLowerCase().includes(lower)
+        );
+        setSearchResults(matches);
+      }
+    },
+    [workspace]
+  );
+
+  // Busca por cliente: procura pelo nome em todas as tarefas (incluindo já
+  // concluídas), não só nas que estão visíveis no quadro no momento.
+  useEffect(() => {
+    const term = search.trim();
+    if (!term) {
+      setSearchResults(null);
+      setSearching(false);
+      return;
+    }
+
+    setSearching(true);
+    const timer = setTimeout(async () => {
+      await runSearch(term);
+      setSearching(false);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [search, workspace, runSearch]);
 
   function handleDragStart(event: DragStartEvent) {
     const task = tasks.find((t) => t.id === event.active.id);
@@ -181,6 +220,7 @@ export function KanbanBoard({ workspace }: Props) {
       });
       if (res.ok) {
         await loadTasks();
+        if (search.trim()) await runSearch(search.trim());
         setModalOpen(false);
         setEditingTask(null);
       }
@@ -212,6 +252,7 @@ export function KanbanBoard({ workspace }: Props) {
     const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
     if (res.ok) {
       await loadTasks();
+      if (search.trim()) await runSearch(search.trim());
       setModalOpen(false);
       setEditingTask(null);
     }
@@ -222,6 +263,9 @@ export function KanbanBoard({ workspace }: Props) {
     // sem sumir do quadro (igual arrastar manualmente para lá).
     setTasks((prev) =>
       prev.map((t) => (t.id === task.id ? { ...t, status: "FEITO" } : t))
+    );
+    setSearchResults((prev) =>
+      prev ? prev.map((t) => (t.id === task.id ? { ...t, status: "FEITO" } : t)) : prev
     );
 
     const res = await fetch(`/api/tasks/${task.id}`, {
@@ -241,6 +285,9 @@ export function KanbanBoard({ workspace }: Props) {
     // sem sumir do quadro (igual arrastar manualmente para lá).
     setTasks((prev) =>
       prev.map((t) => (t.id === task.id ? { ...t, status: "FAZENDO" } : t))
+    );
+    setSearchResults((prev) =>
+      prev ? prev.map((t) => (t.id === task.id ? { ...t, status: "FAZENDO" } : t)) : prev
     );
 
     const res = await fetch(`/api/tasks/${task.id}`, {
@@ -269,21 +316,75 @@ export function KanbanBoard({ workspace }: Props) {
         return a.position - b.position;
       });
 
+  const isSearching = search.trim().length > 0;
+
   return (
     <div>
-      <div className="flex justify-end mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+        <div className="relative flex-1 sm:max-w-xs">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+            🔍
+          </span>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar cliente..."
+            className="w-full pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400 transition-colors"
+          />
+          {isSearching && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm"
+              title="Limpar busca"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
         <button
           onClick={() => {
             setEditingTask(null);
             setModalOpen(true);
           }}
-          className="bg-brand-900 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-4 py-2 transition-colors shadow-sm hover:shadow-md"
+          className="bg-brand-900 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-4 py-2 transition-colors shadow-sm hover:shadow-md sm:ml-auto"
         >
           + Nova tarefa
         </button>
       </div>
 
-      {loading ? (
+      {isSearching ? (
+        <div className="space-y-2.5">
+          {searching && (
+            <p className="text-sm text-slate-400 text-center py-8">Buscando...</p>
+          )}
+
+          {!searching && searchResults && searchResults.length === 0 && (
+            <p className="text-sm text-slate-400 text-center py-8">
+              Nenhuma tarefa encontrada para &quot;{search.trim()}&quot;
+            </p>
+          )}
+
+          {!searching &&
+            searchResults &&
+            searchResults.length > 0 &&
+            searchResults.map((task) => (
+              <div key={task.id} className="max-w-md">
+                <TaskCard
+                  task={task}
+                  onClick={() => {
+                    setEditingTask(task);
+                    setModalOpen(true);
+                  }}
+                  onComplete={() => handleComplete(task)}
+                  onStart={() => handleStart(task)}
+                />
+              </div>
+            ))}
+        </div>
+      ) : loading ? (
         <p className="text-sm text-slate-400 text-center py-12">Carregando...</p>
       ) : (
         <DndContext
