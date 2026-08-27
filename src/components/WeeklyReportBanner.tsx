@@ -118,6 +118,71 @@ export function WeeklyReportBanner() {
           {report.completedByUser.length === 0 && report.clients.length === 0 && (
             <p className="text-slate-500">Nenhuma tarefa concluída na semana passada.</p>
           )}
+
+          {report.stock.topSelling.length > 0 && (
+            <div>
+              <p className="font-semibold text-brand-900 mb-1">🔋 Mais vendidos na semana:</p>
+              <ul className="space-y-0.5 text-slate-600">
+                {report.stock.topSelling.slice(0, 5).map((p) => (
+                  <li key={`top-${p.brand}-${p.amperage}`}>
+                    • {p.brand} {p.amperage}Ah: {p.quantitySold} saída(s)
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {report.stock.leastSelling.length > 0 && (
+            <div>
+              <p className="font-semibold text-brand-900 mb-1">Menos vendidos na semana:</p>
+              <ul className="space-y-0.5 text-slate-600">
+                {report.stock.leastSelling.slice(0, 5).map((p) => (
+                  <li key={`least-${p.brand}-${p.amperage}`}>
+                    • {p.brand} {p.amperage}Ah: {p.quantitySold} saída(s)
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {report.stock.byBrand.length > 0 && (
+            <div>
+              <p className="font-semibold text-brand-900 mb-1">Saídas por marca:</p>
+              <ul className="space-y-0.5 text-slate-600">
+                {report.stock.byBrand.map((b) => (
+                  <li key={`brand-${b.brand}`}>
+                    • {b.brand}: {b.quantitySold} unidade(s)
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {report.stock.lowStock.length > 0 && (
+            <div>
+              <p className="font-semibold text-red-700 mb-1">⚠️ Estoque baixo agora:</p>
+              <ul className="space-y-0.5 text-red-700">
+                {report.stock.lowStock.map((p) => (
+                  <li key={`low-${p.brand}-${p.amperage}`}>
+                    • {p.brand} {p.amperage}Ah: {p.quantity} unidade(s) (mínimo {p.minQuantity})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {report.stock.currentBalances.length > 0 && (
+            <div>
+              <p className="font-semibold text-brand-900 mb-1">Saldo atual de cada produto:</p>
+              <ul className="space-y-0.5 text-slate-600">
+                {report.stock.currentBalances.map((p) => (
+                  <li key={`bal-${p.brand}-${p.amperage}`}>
+                    • {p.brand} {p.amperage}Ah: {p.quantity} unidade(s)
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 

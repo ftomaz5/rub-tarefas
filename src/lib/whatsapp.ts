@@ -65,6 +65,12 @@ export function buildWeeklyReportWhatsappMessage(
     overdueCount: number;
     completedByUser: { name: string; count: number }[];
     clients: { clientName: string }[];
+    stock: {
+      topSelling: { brand: string; amperage: number; quantitySold: number }[];
+      leastSelling: { brand: string; amperage: number; quantitySold: number }[];
+      byBrand: { brand: string; quantitySold: number }[];
+      lowStock: { brand: string; amperage: number; quantity: number; minQuantity: number }[];
+    };
   },
   rangeLabel: string
 ): string {
@@ -84,6 +90,27 @@ export function buildWeeklyReportWhatsappMessage(
     lines.push("", "Clientes atendidos:");
     for (const c of report.clients) {
       lines.push(`   • ${c.clientName}`);
+    }
+  }
+
+  if (report.stock.topSelling.length > 0) {
+    lines.push("", "🔋 Estoque da semana:");
+    lines.push("Mais vendidos:");
+    for (const p of report.stock.topSelling.slice(0, 3)) {
+      lines.push(`   • ${p.brand} ${p.amperage}Ah: ${p.quantitySold} saída(s)`);
+    }
+    if (report.stock.leastSelling.length > 0) {
+      lines.push("Menos vendidos:");
+      for (const p of report.stock.leastSelling.slice(0, 3)) {
+        lines.push(`   • ${p.brand} ${p.amperage}Ah: ${p.quantitySold} saída(s)`);
+      }
+    }
+  }
+
+  if (report.stock.lowStock.length > 0) {
+    lines.push("", "⚠️ Estoque baixo agora:");
+    for (const p of report.stock.lowStock) {
+      lines.push(`   • ${p.brand} ${p.amperage}Ah: ${p.quantity} unidade(s)`);
     }
   }
 

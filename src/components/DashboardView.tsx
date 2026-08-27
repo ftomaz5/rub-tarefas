@@ -290,6 +290,87 @@ export function DashboardView() {
           <p className="text-sm text-slate-400">Nenhum cliente registrado no período.</p>
         )}
       </div>
+
+      <div>
+        <h2 className="text-lg font-bold text-brand-900 tracking-[-0.01em]">📦 Estoque</h2>
+        <p className="text-sm text-slate-500 mt-0.5">
+          Últimos {data.periodMonths} meses <span className="text-gold-600">·</span> saldo é sempre o de agora
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-premium p-4">
+          <h2 className="text-sm font-semibold text-brand-900 mb-3">Produtos mais vendidos</h2>
+          {data.stock.topSelling.length > 0 ? (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-slate-400 text-xs">
+                  <th className="font-medium pb-2">Produto</th>
+                  <th className="font-medium pb-2 text-right">Saídas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.stock.topSelling.map((p) => (
+                  <tr key={`${p.brand}-${p.amperage}`} className="border-t border-slate-100">
+                    <td className="py-1.5 text-slate-700">{p.brand} {p.amperage}Ah</td>
+                    <td className="py-1.5 text-right text-slate-700 font-medium">{p.quantitySold}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-sm text-slate-400">Nenhuma saída de estoque no período.</p>
+          )}
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-premium p-4">
+          <h2 className="text-sm font-semibold text-brand-900 mb-3">Ranking por marca</h2>
+          {data.stock.byBrand.length > 0 ? (
+            <EmployeeRankingChart
+              data={data.stock.byBrand.map((b) => ({ name: b.brand, count: b.quantitySold }))}
+            />
+          ) : (
+            <p className="text-sm text-slate-400">Nenhuma saída de estoque no período.</p>
+          )}
+        </div>
+      </div>
+
+      {data.stock.lowStock.length > 0 && (
+        <div className="bg-white rounded-xl border border-red-200 shadow-premium p-4 border-t-2 border-t-red-400">
+          <h2 className="text-sm font-semibold text-red-700 mb-3">⚠️ Estoque baixo agora</h2>
+          <ul className="space-y-1 text-sm text-red-700">
+            {data.stock.lowStock.map((p) => (
+              <li key={`${p.brand}-${p.amperage}`}>
+                • {p.brand} {p.amperage}Ah: {p.quantity} unidade(s) (mínimo {p.minQuantity})
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-premium p-4">
+        <h2 className="text-sm font-semibold text-brand-900 mb-3">Saldo atual de cada produto</h2>
+        {data.stock.currentBalances.length > 0 ? (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-slate-400 text-xs">
+                <th className="font-medium pb-2">Produto</th>
+                <th className="font-medium pb-2 text-right">Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.stock.currentBalances.map((p) => (
+                <tr key={`${p.brand}-${p.amperage}`} className="border-t border-slate-100">
+                  <td className="py-1.5 text-slate-700">{p.brand} {p.amperage}Ah</td>
+                  <td className="py-1.5 text-right text-slate-700 font-medium">{p.quantity}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-sm text-slate-400">Nenhum produto cadastrado ainda.</p>
+        )}
+      </div>
     </div>
   );
 }

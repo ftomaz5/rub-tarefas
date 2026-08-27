@@ -17,6 +17,16 @@ export interface DashboardData {
   // que o "mais recorrente" acima — esse é sobre frequência, este é sobre
   // ordem no tempo).
   mostRecentClient: { clientName: string; completedAt: string } | null;
+  stock: DashboardStockData;
+}
+
+export interface DashboardStockData {
+  // Produtos com mais saída (venda) no período — "menos vendido" fica só no
+  // relatório semanal, que é mais acionável pra reposição de curto prazo.
+  topSelling: { brand: string; amperage: number; quantitySold: number }[];
+  byBrand: { brand: string; quantitySold: number }[];
+  lowStock: { brand: string; amperage: number; quantity: number; minQuantity: number }[];
+  currentBalances: { brand: string; amperage: number; quantity: number }[];
 }
 
 const MONTH_LABELS = [
@@ -120,6 +130,8 @@ export async function computeDashboardStats(
     .sort((a, b) => b.count - a.count)
     .slice(0, 8);
 
+  const stock = await computeDashboardStockData(prisma, periodStart, periodEnd);
+
   return {
     periodMonths,
     monthly: buckets,
@@ -130,5 +142,61 @@ export async function computeDashboardStats(
     avgCompletionHours: durationSamples > 0 ? totalDurationHours / durationSamples : null,
     topClients,
     mostRecentClient,
+    stock,
   };
+}
+
+async function computeDashboardStockData(
+  prisma: PrismaClient,
+  periodStart: Date,
+  periodEnd: Date
+): Promise<DashboardStockData> {
+  const [movements, products] = await Promise.all([
+    prisma.stockMovement.findMany({
+      where: { type: "SAIDA", createdAt: { gte: periodStart, lt: periodEnd } },
+      include: { product: { select: { brand: true, amperage: true } } },
+    }),
+    prisma.product.findMany({ orderBy: [{ brand: "asc" }, { amperage: "asc" }] }),
+  ]);
+
+  const byProduct = new Map<string, { brand: string; amperage: number; quantitySold: number }>();
+  const byBrandMap = new Map<string, number>();
+
+  for (const m of movements) {
+    const key = `${m.product.brand}__${m.product.amperage}`;
+    const entry = byProduct.get(key) ?? {
+      brand: m.product.brand,
+      amperage: m.product.amperage,
+      quantitySold: 0,
+    };
+    entry.quantitySold += m.quantity;
+    byProduct.set(key, entry);
+
+    byBrandMap.set(m.product.brand, (byBrandMap.get(m.product.brand) ?? 0) + m.quantity);
+  }
+
+  const topSelling = [...byProduct.values()]
+    .sort((a, b) => b.quantitySold - a.quantitySold)
+    .slice(0, 8);
+
+  const byBrand = [...byBrandMap.entries()]
+    .map(([brand, quantitySold]) => ({ brand, quantitySold }))
+    .sort((a, b) => b.quantitySold - a.quantitySold);
+
+  const lowStock = products
+    .filter((p) => p.minQuantity !== null && p.quantity <= p.minQuantity)
+    .map((p) => ({
+      brand: p.brand,
+      amperage: p.amperage,
+      quantity: p.quantity,
+      minQuantity: p.minQuantity as number,
+    }));
+
+  const currentBalances = products.map((p) => ({
+    brand: p.brand,
+    amperage: p.amperage,
+    quantity: p.quantity,
+  }));
+
+  return { topSelling, byBrand, lowStock, currentBalances };
 }

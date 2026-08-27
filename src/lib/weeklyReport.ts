@@ -13,6 +13,22 @@ export interface WeeklyReportData {
   pendingCount: number;
   overdueCount: number;
   clients: { clientName: string; batteryType: string | null; completedAt: string }[];
+  stock: WeeklyStockData;
+}
+
+export interface WeeklyStockData {
+  // Produtos com mais/menos saída (venda) na semana. Só entram produtos que
+  // tiveram pelo menos 1 saída — "menos vendido" não é "zero vendido", é o
+  // produto que mais precisou de reposição de atenção dentro do que já saiu.
+  topSelling: { brand: string; amperage: number; quantitySold: number }[];
+  leastSelling: { brand: string; amperage: number; quantitySold: number }[];
+  // Saídas da semana somadas por marca.
+  byBrand: { brand: string; quantitySold: number }[];
+  // Alerta é sobre o saldo ATUAL (agora), não histórico da semana — o que
+  // importa pra quem lê o relatório é "o que precisa comprar já".
+  lowStock: { brand: string; amperage: number; quantity: number; minQuantity: number }[];
+  // Saldo atual de cada produto cadastrado, pro fechamento/consulta rápida.
+  currentBalances: { brand: string; amperage: number; quantity: number }[];
 }
 
 // Segunda-feira 00:00 da semana anterior até segunda-feira 00:00 desta
@@ -77,6 +93,8 @@ export async function computeWeeklyReport(
       completedAt: (task.completedAt as Date).toISOString(),
     }));
 
+  const stock = await computeWeeklyStockData(prisma, weekStart, weekEnd);
+
   return {
     weekStart: weekStart.toISOString(),
     weekEnd: weekEnd.toISOString(),
@@ -85,5 +103,61 @@ export async function computeWeeklyReport(
     pendingCount,
     overdueCount,
     clients,
+    stock,
   };
+}
+
+async function computeWeeklyStockData(
+  prisma: PrismaClient,
+  weekStart: Date,
+  weekEnd: Date
+): Promise<WeeklyStockData> {
+  const [movements, products] = await Promise.all([
+    prisma.stockMovement.findMany({
+      where: { type: "SAIDA", createdAt: { gte: weekStart, lt: weekEnd } },
+      include: { product: { select: { brand: true, amperage: true } } },
+    }),
+    prisma.product.findMany({ orderBy: [{ brand: "asc" }, { amperage: "asc" }] }),
+  ]);
+
+  const byProduct = new Map<string, { brand: string; amperage: number; quantitySold: number }>();
+  const byBrandMap = new Map<string, number>();
+
+  for (const m of movements) {
+    const key = `${m.product.brand}__${m.product.amperage}`;
+    const entry = byProduct.get(key) ?? {
+      brand: m.product.brand,
+      amperage: m.product.amperage,
+      quantitySold: 0,
+    };
+    entry.quantitySold += m.quantity;
+    byProduct.set(key, entry);
+
+    byBrandMap.set(m.product.brand, (byBrandMap.get(m.product.brand) ?? 0) + m.quantity);
+  }
+
+  const sold = [...byProduct.values()].sort((a, b) => b.quantitySold - a.quantitySold);
+  const topSelling = sold.slice(0, 5);
+  const leastSelling = [...sold].reverse().slice(0, 5);
+
+  const byBrand = [...byBrandMap.entries()]
+    .map(([brand, quantitySold]) => ({ brand, quantitySold }))
+    .sort((a, b) => b.quantitySold - a.quantitySold);
+
+  const lowStock = products
+    .filter((p) => p.minQuantity !== null && p.quantity <= p.minQuantity)
+    .map((p) => ({
+      brand: p.brand,
+      amperage: p.amperage,
+      quantity: p.quantity,
+      minQuantity: p.minQuantity as number,
+    }));
+
+  const currentBalances = products.map((p) => ({
+    brand: p.brand,
+    amperage: p.amperage,
+    quantity: p.quantity,
+  }));
+
+  return { topSelling, leastSelling, byBrand, lowStock, currentBalances };
 }
