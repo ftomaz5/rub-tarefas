@@ -28,6 +28,7 @@ model User {
   tasks         Task[]    @relation("TaskOwner")
   assignedTasks Task[]    @relation("TaskAssignee")
   pushSubscriptions PushSubscription[]
+  stockMovements StockMovement[]
 
   @@map("users")
 }
@@ -123,4 +124,49 @@ model Task {
   @@index([workspace, status])
   @@index([workspace, completedAt])
   @@map("tasks")
+}
+
+// ---------- Estoque da loja ----------
+// Cada produto é uma combinação única de marca + amperagem (ex: "Moura 60Ah").
+// A quantidade fica sempre atualizada aqui; o histórico de cada mudança
+// (quem, quando, quanto, entrada ou saída) fica em StockMovement — é o que
+// alimenta "produto que mais/menos saiu" no relatório semanal e no painel.
+
+enum MovementType {
+  ENTRADA
+  SAIDA
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  brand       String // Marca (ex: Moura, Heliar, Zetta)
+  amperage    Int // Amperagem em Ah (ex: 60)
+  quantity    Int      @default(0) // saldo atual em estoque — nunca fica negativo
+  // Abaixo desse número, o produto entra no alerta de "estoque baixo" no
+  // relatório semanal. Opcional — se não definir, não gera alerta.
+  minQuantity Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  movements StockMovement[]
+
+  @@unique([brand, amperage])
+  @@map("products")
+}
+
+model StockMovement {
+  id        String       @id @default(cuid())
+  productId String
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type      MovementType
+  quantity  Int // sempre positivo — o "type" indica a direção
+  note      String? // opcional: motivo (ex: "venda balcão", "troca por garantia", "compra fornecedor X")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+  @@map("stock_movements")
 }

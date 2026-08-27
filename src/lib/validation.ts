@@ -36,3 +36,24 @@ export const taskUpdateSchema = taskSchema.partial().extend({
   position: z.number().optional(),
   completed: z.boolean().optional(), // true = marca como concluída (sai da tela principal); false = reabre
 });
+
+// ---------- Estoque ----------
+
+export const productSchema = z.object({
+  brand: z.string().min(1, "Informe a marca").max(60),
+  amperage: z.number().int("Amperagem precisa ser um número inteiro").positive("Amperagem precisa ser maior que zero"),
+  quantity: z.number().int().min(0).optional(), // quantidade inicial ao cadastrar (padrão 0)
+  minQuantity: z.number().int().min(0).optional().nullable(), // mínimo pro alerta de estoque baixo
+});
+
+export const productUpdateSchema = z.object({
+  brand: z.string().min(1).max(60).optional(),
+  amperage: z.number().int().positive().optional(),
+  minQuantity: z.number().int().min(0).optional().nullable(),
+});
+
+export const stockMovementSchema = z.object({
+  type: z.enum(["ENTRADA", "SAIDA"]),
+  quantity: z.number().int().positive("Quantidade precisa ser maior que zero"),
+  note: z.string().max(200).optional().nullable(),
+});

@@ -10,9 +10,14 @@ interface Props {
   userName: string;
 }
 
+const NAV_LINKS = [
+  { href: "/", label: "📋 Tarefas" },
+  { href: "/dashboard", label: "📊 Painel" },
+  { href: "/estoque", label: "📦 Estoque" },
+];
+
 export function Header({ userName }: Props) {
   const pathname = usePathname();
-  const onDashboard = pathname === "/dashboard";
 
   return (
     <header className="bg-white/90 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-20">
@@ -36,12 +41,17 @@ export function Header({ userName }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Link
-            href={onDashboard ? "/" : "/dashboard"}
-            className="text-sm font-medium text-brand-700 hover:text-brand-900 transition-colors whitespace-nowrap"
-          >
-            {onDashboard ? "📋 Tarefas" : "📊 Painel"}
-          </Link>
+          <nav className="flex items-center gap-2.5">
+            {NAV_LINKS.filter((link) => link.href !== pathname).map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-medium text-brand-700 hover:text-brand-900 transition-colors whitespace-nowrap"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
           <PushNotifications />
           <span className="text-sm text-slate-600 hidden sm:inline">
             Olá, {userName.split(" ")[0]}
