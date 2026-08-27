@@ -217,9 +217,21 @@ export function DashboardView() {
           sub="Da criação até marcar como feita"
         />
         <StatTile
-          label="Cliente mais recorrente"
+          label="Cliente que mais voltou"
           value={data.topClients[0]?.clientName ?? "—"}
-          sub={data.topClients[0] ? `${data.topClients[0].count} atendimento(s)` : undefined}
+          sub={data.topClients[0] ? `${data.topClients[0].count} atendimento(s) no período` : undefined}
+        />
+        <StatTile
+          label="Cliente mais recente"
+          value={data.mostRecentClient?.clientName ?? "—"}
+          sub={
+            data.mostRecentClient
+              ? `Atendido em ${new Date(data.mostRecentClient.completedAt).toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                })}`
+              : undefined
+          }
         />
       </div>
 

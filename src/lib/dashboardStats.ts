@@ -11,6 +11,10 @@ export interface DashboardData {
   totalCompleted: number;
   avgCompletionHours: number | null;
   topClients: { clientName: string; count: number }[];
+  // Cliente da tarefa concluída mais recentemente no período (não é o mesmo
+  // que o "mais recorrente" acima — esse é sobre frequência, este é sobre
+  // ordem no tempo).
+  mostRecentClient: { clientName: string; completedAt: string } | null;
 }
 
 const MONTH_LABELS = [
@@ -68,6 +72,7 @@ export async function computeDashboardStats(
   const clientMap = new Map<string, number>();
   let totalDurationHours = 0;
   let durationSamples = 0;
+  let mostRecentClient: { clientName: string; completedAt: string } | null = null;
 
   for (const task of completedTasks) {
     const completedAt = task.completedAt as Date;
@@ -80,6 +85,9 @@ export async function computeDashboardStats(
 
     if (task.clientName) {
       clientMap.set(task.clientName, (clientMap.get(task.clientName) ?? 0) + 1);
+      // completedTasks está ordenado do mais antigo pro mais novo, então a
+      // última sobrescrita no final do laço é sempre a mais recente.
+      mostRecentClient = { clientName: task.clientName, completedAt: completedAt.toISOString() };
     }
 
     const hours = (completedAt.getTime() - task.createdAt.getTime()) / (1000 * 60 * 60);
@@ -105,5 +113,6 @@ export async function computeDashboardStats(
     totalCompleted: completedTasks.length,
     avgCompletionHours: durationSamples > 0 ? totalDurationHours / durationSamples : null,
     topClients,
+    mostRecentClient,
   };
 }
