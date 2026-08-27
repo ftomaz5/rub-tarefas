@@ -175,10 +175,21 @@ function EmployeeRankingChart({ data }: { data: DashboardData["byUser"] }) {
   );
 }
 
+// Detalhado e exato: quebra em dias / horas / minutos, em vez de arredondar
+// tudo pra uma casa decimal (ex: "2 dias e 4h e 15min").
 function formatDuration(hours: number): string {
-  if (hours < 1) return `${Math.round(hours * 60)} min`;
-  if (hours < 48) return `${hours.toFixed(1)} h`;
-  return `${(hours / 24).toFixed(1)} dias`;
+  const totalMinutes = Math.round(hours * 60);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const remAfterDays = totalMinutes % (60 * 24);
+  const hrs = Math.floor(remAfterDays / 60);
+  const mins = remAfterDays % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days} dia${days > 1 ? "s" : ""}`);
+  if (hrs > 0) parts.push(`${hrs}h`);
+  if (mins > 0 || parts.length === 0) parts.push(`${mins}min`);
+
+  return parts.join(" e ");
 }
 
 export function DashboardView() {
@@ -210,7 +221,12 @@ export function DashboardView() {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <StatTile label="Tarefas concluídas no período" value={String(data.totalCompleted)} />
+        <StatTile label="Concluídas hoje" value={String(data.completedToday)} />
+        <StatTile label="Concluídas este mês" value={String(data.completedThisMonth)} />
+        <StatTile
+          label={`Concluídas nos últimos ${data.periodMonths} meses`}
+          value={String(data.totalCompleted)}
+        />
         <StatTile
           label="Tempo médio até concluir"
           value={data.avgCompletionHours !== null ? formatDuration(data.avgCompletionHours) : "—"}

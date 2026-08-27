@@ -26,6 +26,10 @@ interface Props {
   workspace: Workspace;
   task: TaskItem | null; // null = criando nova
   users: TaskUser[];
+  // Nomes de clientes já usados antes, pra sugerir/autocompletar (evita
+  // duplicar o mesmo cliente com grafia diferente). Opcional — se não vier,
+  // o campo funciona normal, só sem sugestão.
+  clientNames?: string[];
   onClose: () => void;
   onSave: (data: {
     id?: string;
@@ -59,6 +63,7 @@ export function TaskModal({
   workspace,
   task,
   users,
+  clientNames = [],
   onClose,
   onSave,
   onDelete,
@@ -520,9 +525,21 @@ export function TaskModal({
                 <input
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
+                  list="client-names-datalist"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   placeholder="Nome do cliente"
                 />
+                {clientNames.length > 0 && (
+                  <datalist id="client-names-datalist">
+                    {clientNames.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
+                )}
+                <p className="text-xs text-slate-400 mt-1">
+                  Começa a digitar e escolhe um cliente já cadastrado, se aparecer — mantém o
+                  nome sempre igual pros números do painel baterem certo.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

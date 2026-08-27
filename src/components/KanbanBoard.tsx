@@ -33,6 +33,7 @@ interface Props {
 export function KanbanBoard({ workspace }: Props) {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [users, setUsers] = useState<TaskUser[]>([]);
+  const [clientNames, setClientNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTask, setActiveTask] = useState<TaskItem | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -69,6 +70,10 @@ export function KanbanBoard({ workspace }: Props) {
       fetch("/api/users")
         .then((r) => r.json())
         .then((d) => setUsers(d.users ?? []))
+        .catch(() => {});
+      fetch("/api/clients")
+        .then((r) => r.json())
+        .then((d) => setClientNames(d.clients ?? []))
         .catch(() => {});
     }
   }, [workspace, loadTasks]);
@@ -514,6 +519,7 @@ export function KanbanBoard({ workspace }: Props) {
         workspace={workspace}
         task={editingTask}
         users={users}
+        clientNames={clientNames}
         onClose={() => {
           setModalOpen(false);
           setEditingTask(null);

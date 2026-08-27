@@ -8,7 +8,9 @@ export interface DashboardData {
   periodMonths: number;
   monthly: { month: string; label: string; count: number }[];
   byUser: { name: string; count: number }[];
-  totalCompleted: number;
+  totalCompleted: number; // total no período de 6 meses
+  completedToday: number;
+  completedThisMonth: number;
   avgCompletionHours: number | null;
   topClients: { clientName: string; count: number }[];
   // Cliente da tarefa concluída mais recentemente no período (não é o mesmo
@@ -97,6 +99,18 @@ export async function computeDashboardStats(
     }
   }
 
+  // "Hoje" e "este mês" contam a partir da mesma lista já carregada acima —
+  // sem consulta extra ao banco.
+  const todayStart = new Date(
+    Date.UTC(reference.getUTCFullYear(), reference.getUTCMonth(), reference.getUTCDate())
+  );
+  const completedToday = completedTasks.filter(
+    (t) => (t.completedAt as Date) >= todayStart
+  ).length;
+  const completedThisMonth = completedTasks.filter(
+    (t) => (t.completedAt as Date) >= currentMonthStart
+  ).length;
+
   const byUser = [...byUserMap.entries()]
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count);
@@ -111,6 +125,8 @@ export async function computeDashboardStats(
     monthly: buckets,
     byUser,
     totalCompleted: completedTasks.length,
+    completedToday,
+    completedThisMonth,
     avgCompletionHours: durationSamples > 0 ? totalDurationHours / durationSamples : null,
     topClients,
     mostRecentClient,
