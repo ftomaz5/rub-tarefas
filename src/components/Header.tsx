@@ -23,16 +23,14 @@ export function Header({ userName }: Props) {
     <header className="bg-white/95 backdrop-blur-sm border-b border-slate-200/80 shadow-[0_1px_0_rgba(5,13,51,0.04)] sticky top-0 z-20">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="rounded-xl shrink-0 p-[1.5px] bg-gradient-to-br from-gold-400 to-gold-500">
-            <Image
-              src="/logo.png"
-              alt="Rede Única de Baterias"
-              width={34}
-              height={34}
-              className="rounded-[10px] block"
-              priority
-            />
-          </div>
+          <Image
+            src="/logo.png"
+            alt="Rede Única de Baterias"
+            width={36}
+            height={36}
+            className="rounded-xl shrink-0 shadow-premium"
+            priority
+          />
           <div className="min-w-0">
             <h1 className="text-base font-bold text-brand-900 leading-tight tracking-tight">
               RUB Tarefas

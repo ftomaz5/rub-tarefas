@@ -14,12 +14,29 @@ export async function GET(req: Request) {
   const workspace = searchParams.get("workspace");
   const includeCompleted = searchParams.get("includeCompleted") === "true";
 
+  // O quadro principal (includeCompleted=false) precisa mostrar tanto as
+  // tarefas em aberto quanto as concluídas RECENTEMENTE — senão a coluna
+  // "Feito" fica vazia sempre que a página é recarregada (a atualização
+  // otimista some da tela, e o carregamento de novo só buscava
+  // completedAt: null). Limitamos a 30 dias pra não virar um arquivo morto
+  // de anos de histórico dentro do quadro do dia a dia; o histórico completo
+  // continua disponível pela busca (?includeCompleted=true) e pelo painel.
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
   const tasks = await prisma.task.findMany({
     where: {
       ...(workspace === "PESSOAL"
         ? { workspace: "PESSOAL", ownerId: session.user.id }
         : { workspace: "LOJA" }),
-      ...(includeCompleted ? {} : { completedAt: null }),
+      ...(includeCompleted
+        ? {}
+        : {
+            OR: [
+              { completedAt: null },
+              { completedAt: { gte: thirtyDaysAgo } },
+            ],
+          }),
     },
     include: {
       owner: { select: { id: true, name: true } },
