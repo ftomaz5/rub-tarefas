@@ -67,6 +67,24 @@ export async function PATCH(
     warrantyPhotoUrl,
   } = parsed.data;
 
+  // completedAt é derivado da MUDANÇA de status, não de um campo "completed"
+  // separado — nenhuma tela do app manda esse campo hoje (arrastar pro Feito,
+  // o botão "Concluir" e a fila offline só mandam { status: "FEITO" }), então
+  // completedAt nunca era preenchido e as tarefas "sumiam" das métricas do
+  // relatório semanal e do painel, mesmo aparecendo certinho na coluna Feito.
+  const nextStatus =
+    completed !== undefined ? (completed ? "FEITO" : status ?? task.status) : status ?? task.status;
+
+  let completedAtUpdate: Date | null | undefined; // undefined = não mexe no campo
+  if (nextStatus === "FEITO" && task.status !== "FEITO") {
+    completedAtUpdate = new Date(); // acabou de ser concluída agora
+  } else if (nextStatus !== "FEITO" && task.status === "FEITO") {
+    completedAtUpdate = null; // reaberta: não conta mais como concluída
+  } else if (completed !== undefined) {
+    // Ninguém usa esse campo hoje, mas se algum dia usar, ele manda por cima.
+    completedAtUpdate = completed ? new Date() : null;
+  }
+
   const updated = await prisma.task.update({
     where: { id },
     data: {
@@ -86,12 +104,7 @@ export async function PATCH(
       ...(clientAddress !== undefined ? { clientAddress } : {}),
       ...(batteryType !== undefined ? { batteryType } : {}),
       ...(warrantyPhotoUrl !== undefined ? { warrantyPhotoUrl } : {}),
-      ...(completed !== undefined
-        ? {
-            completedAt: completed ? new Date() : null,
-            status: completed ? "FEITO" : status ?? task.status,
-          }
-        : {}),
+      ...(completedAtUpdate !== undefined ? { completedAt: completedAtUpdate } : {}),
     },
     include: {
       owner: { select: { id: true, name: true } },
