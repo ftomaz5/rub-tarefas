@@ -18,6 +18,10 @@ model User {
   email         String    @unique
   passwordHash  String
   role          Role      @default(FUNCIONARIO)
+  // Número de WhatsApp do funcionário (com DDD), usado para o botão
+  // "Enviar no WhatsApp" nas tarefas. Opcional — só é pedido quando alguém
+  // tenta mandar uma tarefa pra essa pessoa e ainda não tem o número salvo.
+  phone         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

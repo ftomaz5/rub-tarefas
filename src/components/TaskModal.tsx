@@ -15,6 +15,11 @@ import {
 } from "@/lib/types";
 import { buildMapsUrl } from "@/lib/maps";
 import { queuePhoto, isLocalPendingPhoto } from "@/lib/offlinePhotos";
+import {
+  normalizePhoneForWhatsapp,
+  buildTaskWhatsappMessage,
+  buildWhatsappLink,
+} from "@/lib/whatsapp";
 
 interface Props {
   open: boolean;
@@ -75,6 +80,10 @@ export function TaskModal({
   const [photoError, setPhotoError] = useState("");
   const [photoZoomOpen, setPhotoZoomOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [askingPhoneFor, setAskingPhoneFor] = useState<string | null>(null); // id do usuário sem telefone cadastrado
+  const [phoneInput, setPhoneInput] = useState("");
+  const [phoneInputError, setPhoneInputError] = useState("");
+  const [savingPhone, setSavingPhone] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -116,9 +125,88 @@ export function TaskModal({
     setPhotoError("");
     setPhotoZoomOpen(false);
     setLocalPhotoPreview(null);
+    setAskingPhoneFor(null);
+    setPhoneInput("");
+    setPhoneInputError("");
   }, [task, open]);
 
   if (!open) return null;
+
+  const assignedUser = users.find((u) => u.id === assigneeId) ?? null;
+
+  function openWhatsappForAssignee() {
+    if (!assignedUser) return;
+
+    if (!assignedUser.phone) {
+      setAskingPhoneFor(assignedUser.id);
+      setPhoneInput("");
+      setPhoneInputError("");
+      return;
+    }
+
+    const phone = normalizePhoneForWhatsapp(assignedUser.phone);
+    if (!phone) {
+      setAskingPhoneFor(assignedUser.id);
+      setPhoneInput("");
+      setPhoneInputError("");
+      return;
+    }
+
+    const message = buildTaskWhatsappMessage({
+      title: title.trim() || "Nova tarefa",
+      description: description.trim() || null,
+      clientName: clientName.trim() || null,
+      clientPhone: clientPhone.trim() || null,
+      clientAddress: clientAddress.trim() || null,
+      dueDate: buildDueDate(),
+    });
+    window.open(buildWhatsappLink(phone, message), "_blank", "noopener,noreferrer");
+  }
+
+  async function handleSavePhoneAndSend() {
+    if (!askingPhoneFor) return;
+    const normalized = normalizePhoneForWhatsapp(phoneInput);
+    if (!normalized) {
+      setPhoneInputError("Telefone inválido. Digite DDD + número (ex: 43 99999-9999).");
+      return;
+    }
+    setPhoneInputError("");
+
+    setSavingPhone(true);
+    try {
+      const res = await fetch("/api/users/phone", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: askingPhoneFor, phone: phoneInput.trim() }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setPhoneInputError(data?.error ?? "Não foi possível salvar o telefone.");
+        return;
+      }
+
+      // Atualiza a lista de usuários em memória (o componente pai vai
+      // recarregar na próxima abertura, mas isso evita pedir de novo agora)
+      const idx = users.findIndex((u) => u.id === askingPhoneFor);
+      if (idx !== -1) users[idx] = { ...users[idx], phone: data.user.phone };
+
+      const message = buildTaskWhatsappMessage({
+        title: title.trim() || "Nova tarefa",
+        description: description.trim() || null,
+        clientName: clientName.trim() || null,
+        clientPhone: clientPhone.trim() || null,
+        clientAddress: clientAddress.trim() || null,
+        dueDate: buildDueDate(),
+      });
+      window.open(buildWhatsappLink(normalized, message), "_blank", "noopener,noreferrer");
+      setAskingPhoneFor(null);
+      setPhoneInput("");
+    } catch {
+      setPhoneInputError("Não foi possível salvar o telefone. Verifique sua conexão.");
+    } finally {
+      setSavingPhone(false);
+    }
+  }
 
   async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -368,6 +456,55 @@ export function TaskModal({
                   </option>
                 ))}
               </select>
+
+              {assignedUser && (
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={openWhatsappForAssignee}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg px-3 py-2 transition-colors"
+                  >
+                    📱 Enviar tarefa no WhatsApp para {assignedUser.name.split(" ")[0]}
+                  </button>
+
+                  {askingPhoneFor === assignedUser.id && (
+                    <div className="mt-2 p-3 rounded-lg border border-slate-200 bg-slate-50 space-y-2">
+                      <p className="text-xs text-slate-600">
+                        Ainda não temos o WhatsApp de {assignedUser.name.split(" ")[0]} salvo.
+                        Digite o número (com DDD) — só precisa fazer isso uma vez.
+                      </p>
+                      <div className="flex gap-2">
+                        <input
+                          type="tel"
+                          autoFocus
+                          value={phoneInput}
+                          onChange={(e) => setPhoneInput(e.target.value)}
+                          placeholder="(43) 99999-9999"
+                          className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSavePhoneAndSend}
+                          disabled={savingPhone || !phoneInput.trim()}
+                          className="shrink-0 text-sm bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-semibold rounded-lg px-3 transition-colors"
+                        >
+                          {savingPhone ? "..." : "Salvar e enviar"}
+                        </button>
+                      </div>
+                      {phoneInputError && (
+                        <p className="text-xs text-red-600">{phoneInputError}</p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setAskingPhoneFor(null)}
+                        className="text-xs text-slate-400 hover:text-slate-600"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

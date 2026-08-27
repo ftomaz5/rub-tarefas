@@ -11,6 +11,7 @@ export default function CadastroPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,7 @@ export default function CadastroPage() {
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, inviteCode }),
+      body: JSON.stringify({ name, email, password, phone, inviteCode }),
     });
 
     const data = await res.json();
@@ -133,6 +134,22 @@ export default function CadastroPage() {
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
               placeholder="Mínimo 6 caracteres"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              WhatsApp (opcional)
+            </label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+              placeholder="(43) 99999-9999"
+            />
+            <p className="text-xs text-slate-400 mt-1">
+              Permite que outros funcionários te mandem tarefas pelo WhatsApp.
+            </p>
           </div>
 
           <div>

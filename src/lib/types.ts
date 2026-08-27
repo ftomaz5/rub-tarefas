@@ -6,6 +6,7 @@ export type BatteryType = "IMPAR" | "UNICA" | "BATS" | "OUTRAS";
 export interface TaskUser {
   id: string;
   name: string;
+  phone?: string | null;
 }
 
 export interface TaskItem {

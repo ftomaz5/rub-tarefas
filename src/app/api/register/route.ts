@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { name, email, password, inviteCode } = parsed.data;
+  const { name, email, password, phone, inviteCode } = parsed.data;
 
   const expectedCode = process.env.STORE_INVITE_CODE;
   if (!expectedCode || inviteCode !== expectedCode) {
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   const role = userCount === 0 ? "ADMIN" : "FUNCIONARIO";
 
   const user = await prisma.user.create({
-    data: { name, email, passwordHash, role },
+    data: { name, email, passwordHash, role, phone: phone?.trim() || undefined },
     select: { id: true, name: true, email: true, role: true },
   });
 
