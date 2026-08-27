@@ -417,7 +417,7 @@ export function TaskModal({
                   )}
                 </div>
                 <p className="text-xs text-slate-400 mt-1">
-                  Não precisa digitar "Bandeirantes" — o app já completa isso ao traçar a rota.
+                  Não precisa digitar &quot;Bandeirantes&quot; — o app já completa isso ao traçar a rota.
                 </p>
               </div>
 
