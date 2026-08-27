@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { PushNotifications } from "./PushNotifications";
 
@@ -9,6 +11,9 @@ interface Props {
 }
 
 export function Header({ userName }: Props) {
+  const pathname = usePathname();
+  const onDashboard = pathname === "/dashboard";
+
   return (
     <header className="bg-white/90 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-20">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -31,6 +36,12 @@ export function Header({ userName }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href={onDashboard ? "/" : "/dashboard"}
+            className="text-sm font-medium text-brand-700 hover:text-brand-900 hidden sm:inline transition-colors"
+          >
+            {onDashboard ? "📋 Tarefas" : "📊 Painel"}
+          </Link>
           <PushNotifications />
           <span className="text-sm text-slate-600 hidden sm:inline">
             Olá, {userName.split(" ")[0]}
