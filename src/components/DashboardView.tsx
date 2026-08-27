@@ -195,15 +195,33 @@ function formatDuration(hours: number): string {
 export function DashboardView() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Usada tanto no carregamento inicial quanto no botão "Atualizar" — sempre
+  // busca tudo de novo direto do banco (nunca fica em cache), então cobre
+  // tarefas concluídas há segundos, mudanças de outro funcionário, etc.
+  async function loadDashboard(isRefresh: boolean) {
+    if (isRefresh) setRefreshing(true);
+    try {
+      const res = await fetch("/api/dashboard", { cache: "no-store" });
+      if (!res.ok) throw new Error("Falha ao carregar painel");
+      const json = await res.json();
+      setData(json.dashboard);
+      setError(false);
+      setLastUpdated(new Date());
+    } catch {
+      setError(true);
+    } finally {
+      if (isRefresh) setRefreshing(false);
+    }
+  }
 
   useEffect(() => {
-    fetch("/api/dashboard")
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((json) => setData(json.dashboard))
-      .catch(() => setError(true));
+    loadDashboard(false);
   }, []);
 
-  if (error) {
+  if (error && !data) {
     return <p className="text-sm text-red-600">Não deu para carregar o painel. Tenta recarregar a página.</p>;
   }
 
@@ -213,12 +231,36 @@ export function DashboardView() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-brand-900 tracking-[-0.01em]">📊 Painel de indicadores</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Últimos {data.periodMonths} meses <span className="text-gold-600">·</span> só tarefas da Loja
-        </p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-xl font-bold text-brand-900 tracking-[-0.01em]">📊 Painel de indicadores</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Últimos {data.periodMonths} meses <span className="text-gold-600">·</span> só tarefas da Loja
+            {lastUpdated && (
+              <>
+                {" "}
+                <span className="text-gold-600">·</span> atualizado às{" "}
+                {lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+              </>
+            )}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => loadDashboard(true)}
+          disabled={refreshing}
+          className="flex items-center gap-1.5 bg-white hover:bg-slate-50 disabled:opacity-60 text-brand-900 font-semibold text-sm rounded-lg px-3.5 py-2 border border-slate-200/80 shadow-premium shadow-premium-hover transition-all shrink-0"
+        >
+          <span className={refreshing ? "animate-spin" : ""}>🔄</span>
+          {refreshing ? "Atualizando..." : "Atualizar"}
+        </button>
       </div>
+
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          Não deu para atualizar agora. Os números abaixo são da última atualização que funcionou.
+        </p>
+      )}
 
       <div className="flex flex-wrap gap-3">
         <StatTile label="Concluídas hoje" value={String(data.completedToday)} />
