@@ -23,6 +23,7 @@ import {
   BatteryType,
   STATUS_ORDER,
 } from "@/lib/types";
+import { queueStatusChange, flushQueue, countPending } from "@/lib/offlineQueue";
 
 interface Props {
   workspace: Workspace;
@@ -38,6 +39,8 @@ export function KanbanBoard({ workspace }: Props) {
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<TaskItem[] | null>(null);
   const [searching, setSearching] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
 
   const sensors = useSensors(
     // Vale tanto para mouse quanto para toque: só começa a arrastar depois
@@ -68,6 +71,42 @@ export function KanbanBoard({ workspace }: Props) {
         .catch(() => {});
     }
   }, [workspace, loadTasks]);
+
+  // Sincronização automática: quando a conexão volta, reenvia tudo que ficou
+  // pendente enquanto o celular estava sem internet (concluir/iniciar/mover
+  // tarefa). Também atualiza o indicador "sem conexão" no topo da tela.
+  const syncPending = useCallback(async () => {
+    const { synced } = await flushQueue();
+    if (synced > 0) {
+      await loadTasks();
+    }
+    setPendingCount(await countPending());
+  }, [loadTasks]);
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    countPending().then(setPendingCount);
+
+    function handleOnline() {
+      setIsOnline(true);
+      syncPending();
+    }
+    function handleOffline() {
+      setIsOnline(false);
+    }
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    // Se já estiver online ao abrir o app, tenta sincronizar qualquer coisa
+    // que tenha ficado pendente de uma sessão offline anterior.
+    if (navigator.onLine) syncPending();
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [syncPending]);
 
   const runSearch = useCallback(
     async (term: string) => {
@@ -176,15 +215,20 @@ export function KanbanBoard({ workspace }: Props) {
       )
     );
 
-    const res = await fetch(`/api/tasks/${activeTask.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: targetStatus, position: newPosition }),
-    });
-
-    if (!res.ok) {
-      // Reverte em caso de erro
-      loadTasks();
+    try {
+      const res = await fetch(`/api/tasks/${activeTask.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: targetStatus, position: newPosition }),
+      });
+      if (!res.ok) {
+        // Reverte em caso de erro do servidor (não é problema de conexão)
+        loadTasks();
+      }
+    } catch {
+      // Sem conexão: mantém a mudança na tela e guarda para sincronizar depois
+      await queueStatusChange(activeTask.id, { status: targetStatus, position: newPosition });
+      setPendingCount(await countPending());
     }
   }
 
@@ -271,15 +315,20 @@ export function KanbanBoard({ workspace }: Props) {
       prev ? prev.map((t) => (t.id === task.id ? { ...t, status: "FEITO" } : t)) : prev
     );
 
-    const res = await fetch(`/api/tasks/${task.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "FEITO" }),
-    });
-
-    if (!res.ok) {
-      // Reverte em caso de erro
-      loadTasks();
+    try {
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "FEITO" }),
+      });
+      if (!res.ok) {
+        // Reverte em caso de erro do servidor (não é problema de conexão)
+        loadTasks();
+      }
+    } catch {
+      // Sem conexão: mantém a mudança na tela e guarda para sincronizar depois
+      await queueStatusChange(task.id, { status: "FEITO" });
+      setPendingCount(await countPending());
     }
   }
 
@@ -293,15 +342,20 @@ export function KanbanBoard({ workspace }: Props) {
       prev ? prev.map((t) => (t.id === task.id ? { ...t, status: "FAZENDO" } : t)) : prev
     );
 
-    const res = await fetch(`/api/tasks/${task.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "FAZENDO" }),
-    });
-
-    if (!res.ok) {
-      // Reverte em caso de erro
-      loadTasks();
+    try {
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "FAZENDO" }),
+      });
+      if (!res.ok) {
+        // Reverte em caso de erro do servidor (não é problema de conexão)
+        loadTasks();
+      }
+    } catch {
+      // Sem conexão: mantém a mudança na tela e guarda para sincronizar depois
+      await queueStatusChange(task.id, { status: "FAZENDO" });
+      setPendingCount(await countPending());
     }
   }
 
@@ -323,6 +377,24 @@ export function KanbanBoard({ workspace }: Props) {
 
   return (
     <div>
+      {!isOnline && (
+        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 text-xs sm:text-sm rounded-lg px-3 py-2 mb-3">
+          <span>📡</span>
+          <span>
+            Sem conexão — suas ações continuam sendo salvas no celular e serão
+            enviadas automaticamente assim que a internet voltar.
+            {pendingCount > 0 &&
+              ` (${pendingCount} ${pendingCount === 1 ? "pendente" : "pendentes"})`}
+          </span>
+        </div>
+      )}
+      {isOnline && pendingCount > 0 && (
+        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-800 text-xs sm:text-sm rounded-lg px-3 py-2 mb-3">
+          <span>🔄</span>
+          <span>Sincronizando {pendingCount} {pendingCount === 1 ? "ação" : "ações"} pendente...</span>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
         <div className="relative flex-1 sm:max-w-xs">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
