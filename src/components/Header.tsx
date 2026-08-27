@@ -38,7 +38,7 @@ export function Header({ userName }: Props) {
         <div className="flex items-center gap-3">
           <Link
             href={onDashboard ? "/" : "/dashboard"}
-            className="text-sm font-medium text-brand-700 hover:text-brand-900 hidden sm:inline transition-colors"
+            className="text-sm font-medium text-brand-700 hover:text-brand-900 transition-colors whitespace-nowrap"
           >
             {onDashboard ? "📋 Tarefas" : "📊 Painel"}
           </Link>
