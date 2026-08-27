@@ -28,9 +28,9 @@ function niceCeil(n: number): number {
 
 function StatTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 px-4 py-3.5 flex-1 min-w-[160px]">
+    <div className="bg-white rounded-xl border border-slate-200/80 shadow-premium px-4 py-3.5 flex-1 min-w-[160px] border-t-2 border-t-gold-400">
       <p className="text-xs font-medium text-slate-500">{label}</p>
-      <p className="text-2xl font-semibold text-brand-900 mt-1">{value}</p>
+      <p className="text-2xl font-bold text-brand-900 mt-1 tracking-[-0.01em]">{value}</p>
       {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
     </div>
   );
@@ -214,9 +214,9 @@ export function DashboardView() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-brand-900">📊 Painel de indicadores</h1>
+        <h1 className="text-xl font-bold text-brand-900 tracking-[-0.01em]">📊 Painel de indicadores</h1>
         <p className="text-sm text-slate-500 mt-0.5">
-          Últimos {data.periodMonths} meses · só tarefas da Loja
+          Últimos {data.periodMonths} meses <span className="text-gold-600">·</span> só tarefas da Loja
         </p>
       </div>
 
@@ -252,13 +252,13 @@ export function DashboardView() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-4">
-          <h2 className="text-sm font-semibold text-slate-700 mb-3">Tarefas concluídas por mês</h2>
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-premium p-4">
+          <h2 className="text-sm font-semibold text-brand-900 mb-3">Tarefas concluídas por mês</h2>
           <MonthlyBarChart data={data.monthly} />
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-4">
-          <h2 className="text-sm font-semibold text-slate-700 mb-3">Ranking por funcionário</h2>
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-premium p-4">
+          <h2 className="text-sm font-semibold text-brand-900 mb-3">Ranking por funcionário</h2>
           {data.byUser.length > 0 ? (
             <EmployeeRankingChart data={data.byUser} />
           ) : (
@@ -267,8 +267,8 @@ export function DashboardView() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-4">
-        <h2 className="text-sm font-semibold text-slate-700 mb-3">Clientes mais recorrentes</h2>
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-premium p-4">
+        <h2 className="text-sm font-semibold text-brand-900 mb-3">Clientes mais recorrentes</h2>
         {data.topClients.length > 0 ? (
           <table className="w-full text-sm">
             <thead>

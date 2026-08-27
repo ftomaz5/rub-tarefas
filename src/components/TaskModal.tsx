@@ -322,10 +322,10 @@ export function TaskModal({
       </div>
     )}
     <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-[fadeIn_0.15s_ease-out]">
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-[slideUp_0.2s_ease-out]">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-2xl border-t-2 border-t-gold-400 sm:border-t-0 animate-[slideUp_0.2s_ease-out]">
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">
+            <h2 className="text-lg font-bold text-brand-900 tracking-[-0.01em]">
               {task ? "Editar tarefa" : "Nova tarefa"}
             </h2>
             <button
@@ -698,7 +698,7 @@ export function TaskModal({
             <button
               type="submit"
               disabled={saving || uploadingPhoto}
-              className="text-sm bg-brand-900 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold rounded-lg px-4 py-2 transition-colors shadow-sm"
+              className="text-sm bg-brand-900 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold rounded-lg px-4 py-2 transition-all shadow-premium shadow-premium-hover"
             >
               {saving ? "Salvando..." : uploadingPhoto ? "Enviando foto..." : "Salvar"}
             </button>

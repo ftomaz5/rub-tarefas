@@ -44,6 +44,40 @@ body {
   }
 }
 
+/* Sombra "premium": mais suave e profunda que o padrão do Tailwind, dá um ar
+   mais sólido/caro aos cards sem pesar visualmente. Usada nos cards principais
+   (tarefas, tiles do painel, produtos do estoque). */
+.shadow-premium {
+  box-shadow:
+    0 1px 2px rgba(5, 13, 51, 0.04),
+    0 4px 16px -4px rgba(5, 13, 51, 0.08),
+    0 1px 0 rgba(5, 13, 51, 0.03);
+}
+
+.shadow-premium-hover:hover {
+  box-shadow:
+    0 2px 4px rgba(5, 13, 51, 0.06),
+    0 12px 28px -8px rgba(5, 13, 51, 0.14),
+    0 1px 0 rgba(5, 13, 51, 0.04);
+}
+
+/* Friso dourado fino — usado como sublinhado de item ativo (nav, abas) em vez
+   de fundo sólido, pra manter o dourado como "detalhe de marca grande" e não
+   virar cor de botão comum. */
+.gold-underline {
+  position: relative;
+}
+.gold-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #ffe600, #f2ce00);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

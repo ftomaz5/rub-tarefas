@@ -75,7 +75,7 @@ export default function LoginPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-2xl shadow-xl shadow-black/20 p-6 space-y-4"
+          className="bg-white rounded-2xl shadow-xl shadow-black/20 p-6 space-y-4 border-t-2 border-t-gold-400"
         >
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -114,7 +114,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold rounded-lg py-2.5 text-sm transition-colors shadow-sm"
+            className="w-full bg-brand-900 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold rounded-lg py-2.5 text-sm transition-all shadow-premium shadow-premium-hover"
           >
             {loading ? "Entrando..." : "Entrar"}
           </button>

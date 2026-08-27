@@ -54,9 +54,9 @@ function MovementModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm p-5 space-y-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm p-5 space-y-4 shadow-2xl">
         <div>
-          <h2 className="text-lg font-bold text-brand-900">
+          <h2 className="text-lg font-bold text-brand-900 tracking-[-0.01em]">
             {isEntrada ? "➕ Entrada" : "➖ Saída"} de estoque
           </h2>
           <p className="text-sm text-slate-500">
@@ -119,8 +119,8 @@ function MovementModal({
             type="button"
             onClick={submit}
             disabled={saving}
-            className={`flex-1 py-2.5 rounded-lg text-white font-medium text-sm disabled:opacity-60 ${
-              isEntrada ? "bg-emerald-600" : "bg-red-600"
+            className={`flex-1 py-2.5 rounded-lg text-white font-semibold text-sm disabled:opacity-60 shadow-premium transition-all ${
+              isEntrada ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"
             }`}
           >
             {saving ? "Salvando..." : "Confirmar"}
@@ -172,8 +172,8 @@ function NewProductForm({ onClose, onCreated }: { onClose: () => void; onCreated
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm p-5 space-y-3">
-        <h2 className="text-lg font-bold text-brand-900">📦 Novo produto</h2>
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm p-5 space-y-3 shadow-2xl">
+        <h2 className="text-lg font-bold text-brand-900 tracking-[-0.01em]">📦 Novo produto</h2>
 
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">Marca</label>
@@ -239,7 +239,7 @@ function NewProductForm({ onClose, onCreated }: { onClose: () => void; onCreated
             type="button"
             onClick={submit}
             disabled={saving}
-            className="flex-1 py-2.5 rounded-lg bg-brand-700 text-white font-medium text-sm disabled:opacity-60"
+            className="flex-1 py-2.5 rounded-lg bg-brand-900 hover:bg-brand-700 text-white font-semibold text-sm disabled:opacity-60 shadow-premium transition-all"
           >
             {saving ? "Salvando..." : "Cadastrar"}
           </button>
@@ -263,7 +263,7 @@ function ProductRow({
       <div className="min-w-0">
         <p className="text-sm font-medium text-slate-800">{product.amperage}Ah</p>
         {isLow && (
-          <span className="inline-block mt-0.5 text-[11px] font-medium text-red-700 bg-red-50 border border-red-200 rounded px-1.5 py-0.5">
+          <span className="inline-block mt-0.5 text-[11px] font-semibold text-red-700 bg-red-50 border border-red-200 rounded px-1.5 py-0.5">
             ⚠️ Estoque baixo
           </span>
         )}
@@ -272,18 +272,18 @@ function ProductRow({
         <button
           type="button"
           onClick={() => onMove(product, "SAIDA")}
-          className="w-9 h-9 rounded-lg bg-red-50 text-red-600 text-lg font-bold border border-red-200"
+          className="w-9 h-9 rounded-lg bg-red-50 text-red-600 text-lg font-bold border border-red-200 hover:bg-red-100 active:scale-95 transition-all"
           aria-label="Registrar saída"
         >
           −
         </button>
-        <span className="text-base font-semibold text-brand-900 w-8 text-center">
+        <span className="text-base font-bold text-brand-900 w-8 text-center tabular-nums">
           {product.quantity}
         </span>
         <button
           type="button"
           onClick={() => onMove(product, "ENTRADA")}
-          className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 text-lg font-bold border border-emerald-200"
+          className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 text-lg font-bold border border-emerald-200 hover:bg-emerald-100 active:scale-95 transition-all"
           aria-label="Registrar entrada"
         >
           +
@@ -343,16 +343,16 @@ export function StockView() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-xl font-bold text-brand-900">📦 Estoque</h1>
+          <h1 className="text-xl font-bold text-brand-900 tracking-[-0.01em]">📦 Estoque</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            {products.length} produto(s) cadastrado(s) · {totalUnits} unidade(s) no total
+            {products.length} produto(s) cadastrado(s) <span className="text-gold-600">·</span> {totalUnits} unidade(s) no total
             {lowStockCount > 0 && ` · ${lowStockCount} com estoque baixo`}
           </p>
         </div>
         <button
           type="button"
           onClick={() => setShowNewProduct(true)}
-          className="bg-brand-700 text-white text-sm font-medium rounded-lg px-4 py-2.5 shrink-0"
+          className="bg-brand-900 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-4 py-2.5 shrink-0 shadow-premium shadow-premium-hover transition-all"
         >
           + Novo produto
         </button>
@@ -363,8 +363,8 @@ export function StockView() {
       ) : (
         <div className="space-y-4">
           {grouped.map(([brand, items]) => (
-            <div key={brand} className="bg-white rounded-xl border border-slate-200 px-4 py-2">
-              <h2 className="text-sm font-semibold text-slate-700 pt-2">{brand}</h2>
+            <div key={brand} className="bg-white rounded-xl border border-slate-200/80 shadow-premium px-4 py-2 border-t-2 border-t-gold-400">
+              <h2 className="text-sm font-bold text-brand-900 pt-2 tracking-wide uppercase text-[13px]">{brand}</h2>
               <div>
                 {items
                   .sort((a, b) => a.amperage - b.amperage)

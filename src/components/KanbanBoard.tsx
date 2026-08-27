@@ -421,7 +421,7 @@ export function KanbanBoard({ workspace }: Props) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar cliente..."
-            className="w-full pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400 transition-colors"
+            className="w-full pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white shadow-premium focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400 transition-colors"
           />
           {isSearching && (
             <button
@@ -440,7 +440,7 @@ export function KanbanBoard({ workspace }: Props) {
             setEditingTask(null);
             setModalOpen(true);
           }}
-          className="bg-brand-900 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-4 py-2 transition-colors shadow-sm hover:shadow-md sm:ml-auto"
+          className="bg-brand-900 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-4 py-2 transition-all shadow-premium shadow-premium-hover sm:ml-auto"
         >
           + Nova tarefa
         </button>

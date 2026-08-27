@@ -40,14 +40,14 @@ export function TaskCard({ task, onClick, onComplete, onStart }: Props) {
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className={`bg-white rounded-xl border p-3.5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all cursor-grab active:cursor-grabbing touch-none ${
+      className={`bg-white rounded-xl border p-3.5 shadow-premium shadow-premium-hover hover:-translate-y-0.5 transition-all cursor-grab active:cursor-grabbing touch-none ${
         isLate
           ? "border-red-200 border-l-[3px] border-l-red-400"
-          : "border-slate-200 hover:border-slate-300"
+          : "border-slate-200/80 hover:border-slate-300"
       }`}
     >
       <div className="flex items-start justify-between gap-2 mb-1.5">
-        <h4 className="text-sm font-semibold text-slate-900 leading-snug break-words">
+        <h4 className="text-[13.5px] font-semibold text-slate-900 leading-snug break-words tracking-[-0.01em]">
           {task.title}
         </h4>
       </div>

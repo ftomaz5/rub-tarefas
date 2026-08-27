@@ -67,13 +67,13 @@ export function WeeklyReportBanner() {
   );
 
   return (
-    <div className="mb-5 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm">
+    <div className="mb-5 rounded-xl border border-brand-100 bg-white shadow-premium px-4 py-3 text-sm border-t-2 border-t-gold-400">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-semibold text-indigo-900">
+          <p className="font-bold text-brand-900 tracking-[-0.01em]">
             📊 Resumo da semana passada ({rangeLabel})
           </p>
-          <p className="text-indigo-700 mt-0.5">
+          <p className="text-brand-700/80 mt-0.5">
             {report.totalCompleted} tarefa(s) concluída(s)
             {report.overdueCount > 0 && ` · ${report.overdueCount} atrasada(s)`}
             {` · ${report.pendingCount} pendente(s) no momento`}
@@ -83,18 +83,18 @@ export function WeeklyReportBanner() {
           type="button"
           onClick={handleClose}
           title="Fechar"
-          className="text-indigo-400 hover:text-indigo-700 text-lg leading-none shrink-0"
+          className="text-slate-400 hover:text-brand-700 text-lg leading-none shrink-0"
         >
           ×
         </button>
       </div>
 
       {expanded && (
-        <div className="mt-3 space-y-3 border-t border-indigo-200 pt-3">
+        <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
           {report.completedByUser.length > 0 && (
             <div>
-              <p className="font-medium text-indigo-900 mb-1">Concluídas por pessoa:</p>
-              <ul className="space-y-0.5 text-indigo-700">
+              <p className="font-semibold text-brand-900 mb-1">Concluídas por pessoa:</p>
+              <ul className="space-y-0.5 text-slate-600">
                 {report.completedByUser.map((u) => (
                   <li key={u.name}>
                     • {u.name}: {u.count}
@@ -106,8 +106,8 @@ export function WeeklyReportBanner() {
 
           {report.clients.length > 0 && (
             <div>
-              <p className="font-medium text-indigo-900 mb-1">Clientes atendidos:</p>
-              <ul className="space-y-0.5 text-indigo-700">
+              <p className="font-semibold text-brand-900 mb-1">Clientes atendidos:</p>
+              <ul className="space-y-0.5 text-slate-600">
                 {report.clients.map((c, i) => (
                   <li key={`${c.clientName}-${i}`}>• {c.clientName}</li>
                 ))}
@@ -116,7 +116,7 @@ export function WeeklyReportBanner() {
           )}
 
           {report.completedByUser.length === 0 && report.clients.length === 0 && (
-            <p className="text-indigo-700">Nenhuma tarefa concluída na semana passada.</p>
+            <p className="text-slate-500">Nenhuma tarefa concluída na semana passada.</p>
           )}
         </div>
       )}
@@ -125,7 +125,7 @@ export function WeeklyReportBanner() {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="text-indigo-700 font-medium hover:underline"
+          className="text-brand-700 font-semibold hover:underline"
         >
           {expanded ? "Ver menos" : "Ver detalhes"}
         </button>
@@ -133,7 +133,7 @@ export function WeeklyReportBanner() {
           href={whatsappLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-1.5 rounded-lg text-xs transition-colors"
+          className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs shadow-premium transition-all"
         >
           📱 Enviar no WhatsApp
         </a>
