@@ -5,13 +5,14 @@
 // a ação fica guardada aqui e é reenviada automaticamente assim que a conexão
 // volta — sem perder o que o entregador fez na rua.
 //
-// Escopo proposital: só cobre mudança de status/posição. Criar tarefa nova e
-// tirar foto continuam exigindo internet (por enquanto), porque envolvem mais
-// dado (e a foto precisa subir pro Vercel Blob de qualquer forma).
+// Escopo: cobre mudança de status/posição. A foto da garantia tem sua própria
+// fila (veja offlinePhotos.ts) porque guarda o arquivo em si, não só texto.
+// As duas compartilham o mesmo banco IndexedDB — a abertura fica centralizada
+// em offlineDb.ts para não haver conflito de versão entre os dois arquivos.
 
-const DB_NAME = "rub-tarefas-offline";
-const DB_VERSION = 1;
-const STORE_NAME = "pending-status-changes";
+import { openOfflineDb, STATUS_STORE } from "./offlineDb";
+
+const STORE_NAME = STATUS_STORE;
 
 export interface PendingStatusChange {
   id: string; // id interno da fila (não é o id da tarefa)
@@ -21,23 +22,7 @@ export interface PendingStatusChange {
   createdAt: number;
 }
 
-function openDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    if (typeof indexedDB === "undefined") {
-      reject(new Error("IndexedDB não disponível"));
-      return;
-    }
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: "id" });
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
+const openDb = openOfflineDb;
 
 export async function queueStatusChange(
   taskId: string,

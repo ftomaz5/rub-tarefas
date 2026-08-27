@@ -24,6 +24,7 @@ import {
   STATUS_ORDER,
 } from "@/lib/types";
 import { queueStatusChange, flushQueue, countPending } from "@/lib/offlineQueue";
+import { flushPendingPhotos, countPendingPhotos } from "@/lib/offlinePhotos";
 
 interface Props {
   workspace: Workspace;
@@ -74,18 +75,28 @@ export function KanbanBoard({ workspace }: Props) {
 
   // Sincronização automática: quando a conexão volta, reenvia tudo que ficou
   // pendente enquanto o celular estava sem internet (concluir/iniciar/mover
-  // tarefa). Também atualiza o indicador "sem conexão" no topo da tela.
+  // tarefa, e também foto da garantia). Também atualiza o indicador "sem
+  // conexão" no topo da tela.
   const syncPending = useCallback(async () => {
-    const { synced } = await flushQueue();
-    if (synced > 0) {
+    const [{ synced: syncedStatus }, { synced: syncedPhotos }] = await Promise.all([
+      flushQueue(),
+      flushPendingPhotos(),
+    ]);
+    if (syncedStatus > 0 || syncedPhotos > 0) {
       await loadTasks();
     }
-    setPendingCount(await countPending());
+    const [statusCount, photoCount] = await Promise.all([
+      countPending(),
+      countPendingPhotos(),
+    ]);
+    setPendingCount(statusCount + photoCount);
   }, [loadTasks]);
 
   useEffect(() => {
     setIsOnline(navigator.onLine);
-    countPending().then(setPendingCount);
+    Promise.all([countPending(), countPendingPhotos()]).then(([a, b]) =>
+      setPendingCount(a + b)
+    );
 
     function handleOnline() {
       setIsOnline(true);
@@ -244,7 +255,7 @@ export function KanbanBoard({ workspace }: Props) {
     clientPhone: string | null;
     clientAddress: string | null;
     batteryType: BatteryType | null;
-    warrantyPhotoUrl: string | null;
+    warrantyPhotoUrl?: string | null;
   }) {
     if (data.id) {
       const res = await fetch(`/api/tasks/${data.id}`, {

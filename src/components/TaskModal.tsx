@@ -14,6 +14,7 @@ import {
   BATTERY_TYPE_ORDER,
 } from "@/lib/types";
 import { buildMapsUrl } from "@/lib/maps";
+import { queuePhoto, isLocalPendingPhoto } from "@/lib/offlinePhotos";
 
 interface Props {
   open: boolean;
@@ -33,7 +34,9 @@ interface Props {
     clientPhone: string | null;
     clientAddress: string | null;
     batteryType: BatteryType | null;
-    warrantyPhotoUrl: string | null;
+    // undefined = não mexe no campo (usado quando a foto ainda está pendente
+    // de sincronizar offline, para não sobrescrever o link real com o marcador local)
+    warrantyPhotoUrl?: string | null;
   }) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
 }
@@ -67,6 +70,7 @@ export function TaskModal({
   const [clientAddress, setClientAddress] = useState("");
   const [batteryType, setBatteryType] = useState<BatteryType | "">("");
   const [warrantyPhotoUrl, setWarrantyPhotoUrl] = useState<string | null>(null);
+  const [localPhotoPreview, setLocalPhotoPreview] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState("");
   const [photoZoomOpen, setPhotoZoomOpen] = useState(false);
@@ -111,6 +115,7 @@ export function TaskModal({
     }
     setPhotoError("");
     setPhotoZoomOpen(false);
+    setLocalPhotoPreview(null);
   }, [task, open]);
 
   if (!open) return null;
@@ -132,8 +137,21 @@ export function TaskModal({
         return;
       }
       setWarrantyPhotoUrl(data.url);
+      setLocalPhotoPreview(null);
     } catch {
-      setPhotoError("Não foi possível enviar a foto. Verifique sua conexão.");
+      // Sem conexão: se a tarefa já existe, guarda a foto no celular e
+      // mostra a prévia local. O envio de verdade acontece sozinho quando a
+      // internet voltar (mesma lógica de status/mover tarefa).
+      if (task?.id) {
+        await queuePhoto(task.id, file);
+        setLocalPhotoPreview(URL.createObjectURL(file));
+        setWarrantyPhotoUrl(`local-pending:${task.id}`);
+        setPhotoError("");
+      } else {
+        setPhotoError(
+          "Sem conexão. Para tirar foto de garantia é preciso salvar a tarefa primeiro com internet."
+        );
+      }
     } finally {
       setUploadingPhoto(false);
     }
@@ -165,7 +183,13 @@ export function TaskModal({
       clientPhone: clientPhone.trim() || null,
       clientAddress: clientAddress.trim() || null,
       batteryType: batteryType || null,
-      warrantyPhotoUrl,
+      // Enquanto a foto está só guardada no celular (offline), não manda esse
+      // marcador pro servidor — ele não é uma URL de verdade. O link real é
+      // preenchido sozinho quando a foto sincronizar (veja offlinePhotos.ts).
+      // "undefined" aqui faz o KanbanBoard simplesmente não mexer nesse campo.
+      warrantyPhotoUrl: isLocalPendingPhoto(warrantyPhotoUrl)
+        ? undefined
+        : warrantyPhotoUrl,
     });
     setSaving(false);
   }
@@ -187,7 +211,11 @@ export function TaskModal({
         </button>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={warrantyPhotoUrl}
+          src={
+            isLocalPendingPhoto(warrantyPhotoUrl)
+              ? localPhotoPreview ?? undefined
+              : warrantyPhotoUrl
+          }
           alt="Foto da garantia (ampliada)"
           onClick={(e) => e.stopPropagation()}
           className="max-w-full max-h-full w-auto h-auto object-contain touch-pinch-zoom select-none rounded-sm"
@@ -430,11 +458,23 @@ export function TaskModal({
                   <div className="relative inline-block">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={warrantyPhotoUrl}
+                      src={
+                        isLocalPendingPhoto(warrantyPhotoUrl)
+                          ? localPhotoPreview ?? undefined
+                          : warrantyPhotoUrl
+                      }
                       alt="Foto da garantia"
                       onClick={() => setPhotoZoomOpen(true)}
                       className="h-40 w-40 rounded-lg object-cover border border-slate-200 cursor-zoom-in hover:opacity-90 transition-opacity"
                     />
+                    {isLocalPendingPhoto(warrantyPhotoUrl) && (
+                      <span
+                        title="Guardada no celular — vai enviar sozinha quando a internet voltar"
+                        className="absolute bottom-1.5 left-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-500/90 text-white shadow-sm"
+                      >
+                        📤 aguardando envio
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={() => setPhotoZoomOpen(true)}
@@ -445,7 +485,10 @@ export function TaskModal({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setWarrantyPhotoUrl(null)}
+                      onClick={() => {
+                        setWarrantyPhotoUrl(null);
+                        setLocalPhotoPreview(null);
+                      }}
                       title="Remover foto"
                       className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center shadow-sm hover:bg-slate-700"
                     >
