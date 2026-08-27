@@ -50,3 +50,44 @@ export function buildTaskWhatsappMessage(task: {
 export function buildWhatsappLink(phone: string, message: string): string {
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }
+
+// Link do WhatsApp sem número fixo: abre o WhatsApp já com a mensagem
+// pronta e deixa a pessoa escolher pra quem mandar (contato ou grupo).
+// Usado no relatório semanal, que não tem "um" destinatário certo.
+export function buildGenericWhatsappLink(message: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+}
+
+export function buildWeeklyReportWhatsappMessage(
+  report: {
+    totalCompleted: number;
+    pendingCount: number;
+    overdueCount: number;
+    completedByUser: { name: string; count: number }[];
+    clients: { clientName: string }[];
+  },
+  rangeLabel: string
+): string {
+  const lines: string[] = [`📊 *Resumo da semana (${rangeLabel})*`, ""];
+
+  lines.push(`✅ ${report.totalCompleted} tarefa(s) concluída(s)`);
+  for (const u of report.completedByUser) {
+    lines.push(`   • ${u.name}: ${u.count}`);
+  }
+
+  lines.push(`📌 ${report.pendingCount} pendente(s) no momento`);
+  if (report.overdueCount > 0) {
+    lines.push(`⚠️ ${report.overdueCount} atrasada(s)`);
+  }
+
+  if (report.clients.length > 0) {
+    lines.push("", "Clientes atendidos:");
+    for (const c of report.clients) {
+      lines.push(`   • ${c.clientName}`);
+    }
+  }
+
+  lines.push("", "— Enviado pelo RUB Tarefas");
+
+  return lines.join("\n");
+}

@@ -51,6 +51,17 @@ enum Role {
   FUNCIONARIO   // colaborador, cria e move tarefas
 }
 
+// Controla se o push do "Relatório semanal" já foi mandado numa determinada
+// semana, pra nunca duplicar mesmo que o serviço externo de cron chame o
+// endpoint mais de uma vez na mesma segunda-feira.
+model WeeklyReportSent {
+  id        String   @id @default(cuid())
+  weekStart DateTime @unique // segunda-feira 00:00 da semana do relatório
+  sentAt    DateTime @default(now())
+
+  @@map("weekly_report_sent")
+}
+
 // ---------- Espaços de tarefas ----------
 // Cada tarefa pertence a um "espaço": pessoal (só do dono) ou da loja (compartilhado)
 
