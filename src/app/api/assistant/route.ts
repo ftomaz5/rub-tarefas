@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createPartFromFunctionResponse } from "@google/genai";
+import type { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { assistantMessageSchema } from "@/lib/validation";
@@ -130,8 +131,8 @@ export async function POST(req: Request) {
             role: "TOOL",
             content: `[ferramenta: ${toolName}]`,
             toolName,
-            toolArgs,
-            toolResult: toolResult as object,
+            toolArgs: toolArgs as Prisma.InputJsonValue,
+            toolResult: toolResult as Prisma.InputJsonValue,
           },
         });
 
