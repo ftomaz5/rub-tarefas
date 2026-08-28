@@ -1,7 +1,7 @@
 export type Status = "A_FAZER" | "FAZENDO" | "FEITO";
 export type Priority = "BAIXA" | "MEDIA" | "ALTA";
 export type Workspace = "PESSOAL" | "LOJA";
-export type BatteryType = "IMPAR" | "UNICA" | "BATS" | "OUTRAS";
+export type BatteryType = "IMPAR" | "UNICA" | "BATS" | "HELIAR" | "EXCELL" | "OUTRAS";
 
 export interface TaskUser {
   id: string;
@@ -52,7 +52,16 @@ export const BATTERY_TYPE_LABELS: Record<BatteryType, string> = {
   IMPAR: "Ímpar",
   UNICA: "Única",
   BATS: "Bats",
+  HELIAR: "Heliar",
+  EXCELL: "Excell",
   OUTRAS: "Outras",
 };
 
-export const BATTERY_TYPE_ORDER: BatteryType[] = ["IMPAR", "UNICA", "BATS", "OUTRAS"];
+export const BATTERY_TYPE_ORDER: BatteryType[] = [
+  "IMPAR",
+  "UNICA",
+  "BATS",
+  "HELIAR",
+  "EXCELL",
+  "OUTRAS",
+];

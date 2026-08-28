@@ -29,6 +29,7 @@ model User {
   assignedTasks Task[]    @relation("TaskAssignee")
   pushSubscriptions PushSubscription[]
   stockMovements StockMovement[]
+  aiMessages    AiMessage[]
 
   @@map("users")
 }
@@ -87,6 +88,8 @@ enum BatteryType {
   IMPAR
   UNICA
   BATS
+  HELIAR
+  EXCELL
   OUTRAS
 }
 
@@ -169,4 +172,31 @@ model StockMovement {
 
   @@index([productId, createdAt])
   @@map("stock_movements")
+}
+
+// ---------- Assistente de IA ----------
+// Histórico de conversa com o assistente (🧠 Assistente RUB), um por usuário.
+// Guardamos aqui pra conversa sobreviver a um recarregamento de página.
+// Mensagens de ferramenta (toolName/toolArgs/toolResult) só existem a partir
+// da fase em que o assistente ganha acesso aos dados do app (fase 2).
+
+enum AiMessageRole {
+  USER
+  MODEL
+  TOOL
+}
+
+model AiMessage {
+  id         String        @id @default(cuid())
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       AiMessageRole
+  content    String        @db.Text
+  toolName   String?
+  toolArgs   Json?
+  toolResult Json?
+  createdAt  DateTime      @default(now())
+
+  @@index([userId, createdAt])
+  @@map("ai_messages")
 }

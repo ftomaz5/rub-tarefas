@@ -27,7 +27,7 @@ export const taskSchema = z.object({
   clientName: z.string().max(120).optional().nullable(),
   clientPhone: z.string().max(30).optional().nullable(),
   clientAddress: z.string().max(300).optional().nullable(),
-  batteryType: z.enum(["IMPAR", "UNICA", "BATS", "OUTRAS"]).optional().nullable(),
+  batteryType: z.enum(["IMPAR", "UNICA", "BATS", "HELIAR", "EXCELL", "OUTRAS"]).optional().nullable(),
   warrantyPhotoUrl: z.string().url().max(500).optional().nullable(),
 });
 
@@ -56,4 +56,10 @@ export const stockMovementSchema = z.object({
   type: z.enum(["ENTRADA", "SAIDA"]),
   quantity: z.number().int().positive("Quantidade precisa ser maior que zero"),
   note: z.string().max(200).optional().nullable(),
+});
+
+// ---------- Assistente de IA ----------
+
+export const assistantMessageSchema = z.object({
+  message: z.string().min(1, "Digite uma mensagem").max(1000, "Mensagem muito longa"),
 });

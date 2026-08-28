@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { href: "/", label: "📋 Tarefas" },
   { href: "/dashboard", label: "📊 Painel" },
   { href: "/estoque", label: "📦 Estoque" },
+  { href: "/assistente", label: "🧠 Assistente" },
 ];
 
 export function Header({ userName }: Props) {
