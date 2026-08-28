@@ -79,21 +79,20 @@ export async function POST(req: Request) {
 
   try {
     const genAI = getGeminiClient();
-    const model = genAI.getGenerativeModel({
+    const chat = genAI.chats.create({
       model: GEMINI_MODEL_NAME,
-      systemInstruction: SYSTEM_INSTRUCTION,
+      history,
+      config: { systemInstruction: SYSTEM_INSTRUCTION },
     });
 
-    const chat = model.startChat({ history });
-
     const result = await Promise.race([
-      chat.sendMessage(message),
+      chat.sendMessage({ message }),
       new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("timeout")), timeoutMs)
       ),
     ]);
 
-    const text = result.response.text();
+    const text = result.text ?? "";
 
     await prisma.aiMessage.create({
       data: { userId, role: "MODEL", content: text },
