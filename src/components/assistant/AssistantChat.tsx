@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 interface Message {
   id: string;
-  role: "USER" | "MODEL";
+  role: "USER" | "MODEL" | "TOOL";
   content: string;
 }
 
@@ -18,7 +18,15 @@ export function AssistantChat() {
   useEffect(() => {
     fetch("/api/assistant")
       .then((r) => r.json())
-      .then((d) => setMessages(d.messages ?? []))
+      .then((d) => {
+        // Mensagens de ferramenta (role TOOL) ficam salvas pro histórico
+        // fazer sentido no backend, mas não são pra aparecer como balão de
+        // chat — só as de USER e MODEL são visíveis na conversa.
+        const visible = (d.messages ?? []).filter(
+          (m: Message) => m.role === "USER" || m.role === "MODEL"
+        );
+        setMessages(visible);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -112,9 +120,10 @@ export function AssistantChat() {
               Oi! Sou o assistente da RUB.
             </p>
             <p className="text-xs text-slate-400">
-              Pergunte sobre baterias, atendimento ao cliente ou gestão da
-              loja. Em breve também vou poder consultar os dados de tarefas e
-              estoque direto por aqui.
+              Pergunte sobre baterias, atendimento ao cliente, gestão da loja
+              — ou sobre os dados reais da RUB, tipo &quot;quantas tarefas
+              concluí esse mês&quot; ou &quot;tem cliente com tarefa
+              atrasada?&quot;.
             </p>
           </div>
         )}

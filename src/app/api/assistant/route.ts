@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createPartFromFunctionResponse } from "@google/genai";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { assistantMessageSchema } from "@/lib/validation";
@@ -8,6 +9,12 @@ import {
   SYSTEM_INSTRUCTION,
   friendlyGeminiError,
 } from "@/lib/ai/gemini";
+import { toolDeclarations } from "@/lib/ai/tools";
+import { executeTool } from "@/lib/ai/toolExecutors";
+
+// Limite de idas e vindas de chamada de ferramenta num único turno — evita
+// loop infinito e mantém a resposta dentro do timeout do Vercel Hobby (~10s).
+const MAX_TOOL_ITERATIONS = 4;
 
 // Quantas mensagens recentes mandar de volta pro Gemini como histórico.
 // Suficiente pra manter o contexto de uma conversa normal sem gastar tokens
@@ -77,20 +84,73 @@ export async function POST(req: Request) {
   // plataforma matar a função sem aviso nenhum pro usuário.
   const timeoutMs = 8500;
 
+  const deadline = Date.now() + timeoutMs;
+
   try {
     const genAI = getGeminiClient();
     const chat = genAI.chats.create({
       model: GEMINI_MODEL_NAME,
       history,
-      config: { systemInstruction: SYSTEM_INSTRUCTION },
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        tools: [{ functionDeclarations: toolDeclarations }],
+      },
     });
 
-    const result = await Promise.race([
+    function timeLeft(): number {
+      const left = deadline - Date.now();
+      if (left <= 0) throw new Error("timeout");
+      return left;
+    }
+
+    let result = await Promise.race([
       chat.sendMessage({ message }),
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("timeout")), timeoutMs)
+        setTimeout(() => reject(new Error("timeout")), timeLeft())
       ),
     ]);
+
+    // Loop de chamada de ferramentas: enquanto o Gemini pedir pra rodar
+    // alguma ferramenta, executa (só leitura, ou a proposta sem escrita) e
+    // manda o resultado de volta, até ele responder com texto final ou o
+    // limite de iterações/tempo ser atingido.
+    let iterations = 0;
+    while (result.functionCalls && result.functionCalls.length > 0 && iterations < MAX_TOOL_ITERATIONS) {
+      iterations++;
+
+      const responseParts = [];
+      for (const call of result.functionCalls) {
+        const toolName = call.name ?? "";
+        const toolArgs = (call.args ?? {}) as Record<string, unknown>;
+        const toolResult = await executeTool(toolName, toolArgs, { userId });
+
+        await prisma.aiMessage.create({
+          data: {
+            userId,
+            role: "TOOL",
+            content: `[ferramenta: ${toolName}]`,
+            toolName,
+            toolArgs,
+            toolResult: toolResult as object,
+          },
+        });
+
+        responseParts.push(
+          createPartFromFunctionResponse(
+            call.id ?? toolName,
+            toolName,
+            toolResult as Record<string, unknown>
+          )
+        );
+      }
+
+      result = await Promise.race([
+        chat.sendMessage({ message: responseParts }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("timeout")), timeLeft())
+        ),
+      ]);
+    }
 
     const text = result.text ?? "";
 
